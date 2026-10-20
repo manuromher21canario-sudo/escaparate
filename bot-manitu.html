@@ -1,0 +1,1001 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manitu · simulador del bot</title>
+<style>
+  :root { --fondo: #DDE6DF; --cab: #2E7D4F; --mio: #DCF8C6; --suyo: #FFFFFF; --tinta: #1F2328; --gris: #6B7A71; --boton: #E9F2EC; --linea: #CFDBD3; color-scheme: light; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: #C8D3CB; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color: var(--tinta); display: flex; justify-content: center; align-items: flex-start; gap: 28px; padding: 20px 16px; flex-wrap: wrap; }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; border: 0; }
+  :focus-visible { outline: 3px solid #E08A2C; outline-offset: 2px; }
+  .movil { width: 390px; max-width: 100%; height: calc(100vh - 40px); max-height: 820px; min-height: 560px; background: var(--fondo); border-radius: 26px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 12px 40px rgba(0,0,0,.2); border: 8px solid #111; }
+  .cab { background: var(--cab); color: #fff; padding: 12px 14px; display: flex; align-items: center; gap: 10px; }
+  .cab .ava { width: 38px; height: 38px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-size: 20px; }
+  .cab b { display: block; }
+  .cab small { opacity: .85; }
+  .chat { flex: 1; overflow-y: auto; padding: 12px 10px; display: flex; flex-direction: column; gap: 6px; }
+  .burbuja { max-width: 86%; padding: 8px 11px; border-radius: 14px; line-height: 1.42; font-size: 15px; box-shadow: 0 1px 1px rgba(0,0,0,.08); overflow-wrap: anywhere; }
+  .bot { align-self: flex-start; background: var(--suyo); border-top-left-radius: 4px; }
+  .yo { align-self: flex-end; background: var(--mio); border-top-right-radius: 4px; }
+  .botones { align-self: flex-start; max-width: 86%; width: 86%; display: grid; gap: 4px; margin-top: -2px; }
+  .botones .fila { display: flex; gap: 4px; }
+  .botones button { flex: 1; background: rgba(255,255,255,.75); border-radius: 10px; padding: 9px 6px; font-size: 14px; font-weight: 600; color: #1D5E3A; }
+  .botones button:hover { background: #fff; }
+  .doc { display: flex; gap: 10px; align-items: center; cursor: pointer; }
+  .doc .ico { width: 42px; height: 42px; border-radius: 10px; background: #E04B3C; color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 12px; flex: none; }
+  .doc small { color: var(--gris); display: block; }
+  .foto { width: 150px; height: 110px; border-radius: 10px; background: repeating-linear-gradient(0deg, #fff, #fff 12px, #eee 12px, #eee 13px); border: 1px solid #ddd; display: grid; place-items: center; font-size: 13px; color: #777; }
+  .abajo { background: #F4F7F5; border-top: 1px solid var(--linea); }
+  .menu { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 6px; }
+  .menu button { background: #fff; border-radius: 10px; padding: 11px 4px; font-size: 14px; font-weight: 600; box-shadow: 0 1px 1px rgba(0,0,0,.08); }
+  .escribir { display: flex; gap: 6px; padding: 8px; align-items: center; }
+  .escribir input { flex: 1; border: 1px solid var(--linea); border-radius: 20px; padding: 10px 14px; background: #fff; min-width: 0; }
+  .escribir button { width: 42px; height: 42px; border-radius: 50%; background: var(--cab); color: #fff; font-size: 18px; flex: none; }
+  .escribir .clip { background: #fff; color: var(--gris); border: 1px solid var(--linea); }
+  .empezar { margin: auto; background: var(--cab); color: #fff; border-radius: 14px; padding: 13px 22px; font-weight: 700; }
+  .lado { width: 340px; max-width: 100%; line-height: 1.55; }
+  .lado h1 { font-size: 22px; margin: 0 0 6px; }
+  .lado p { margin: 0 0 12px; color: #33423A; }
+  .lado ol { padding-left: 20px; margin: 0 0 14px; }
+  .lado li { margin-bottom: 6px; }
+  .lado .nota { background: #fff; border-radius: 12px; padding: 12px 14px; font-size: 14px; color: #4A5A51; }
+  .reiniciar { margin-top: 12px; background: #fff; border-radius: 12px; padding: 10px 14px; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="movil">
+  <div class="cab"><div class="ava">🔧</div><div><b>Manitu</b><small>bot</small></div></div>
+  <div class="chat" id="chat"><button class="empezar" id="empezar">EMPEZAR</button></div>
+  <div class="abajo">
+    <div class="menu" id="menu" hidden></div>
+    <form class="escribir" id="form">
+      <button type="button" class="clip" id="foto" title="Mandar la foto de un ticket (de ejemplo)" aria-label="Mandar foto de un ticket">📎</button>
+      <input id="texto" placeholder="Mensaje" autocomplete="off">
+      <button type="submit" aria-label="Enviar">➤</button>
+    </form>
+  </div>
+</div>
+<div class="lado">
+  <h1>🔧 Simulador del bot de Manitu</h1>
+  <p>Es el bot <b>de verdad</b> (el mismo cerebro que irá en Telegram), pero funcionando en tu navegador. Nada se guarda: al recargar, empieza de cero.</p>
+  <ol>
+    <li>Pulsa <b>EMPEZAR</b> y date de alta (nombre, oficio, € por hora).</li>
+    <li><b>🔨 Nuevo trabajo</b>: un cliente y qué hay que hacer.</li>
+    <li>Apunta tickets escribiendo, por ejemplo, <b>12,50 tornillos</b>, o pulsa 📎 para mandar la foto de un ticket de ejemplo.</li>
+    <li>Apunta <b>⏱️ horas</b> y <b>🚗 viajes</b>.</li>
+    <li><b>✅ Cerrar trabajo</b>: el precio justo, tus cuentas y el PDF para el cliente (púlsalo para verlo).</li>
+  </ol>
+  <div class="nota">📎 En el simulador la foto es siempre el mismo ticket de ejemplo (TOTAL 17 €). En Telegram leerá el ticket que fotografíes.</div>
+  <button class="reiniciar" onclick="location.reload()">↺ Empezar de nuevo</button>
+</div>
+<script>// Marco del simulador: el MISMO cerebro del bot (Datos, Cuentas, Papel, Bot, Ocr) con un Google y un Telegram de mentira.
+// construir.py mete los .gs en el hueco marcado más abajo y sale sim/cerebro-sim.js (sirve en el navegador y en las pruebas).
+function crearBotSimulado(alSalir, opciones) {
+  opciones = opciones || {};
+  function hojaFalsa(nombre) {
+    const filas = [];
+    const h = {
+      nombre: nombre,
+      setName: function (n) { h.nombre = n; return h; },
+      getDataRange: function () { return { getValues: function () { return filas.map(function (f) { return f.slice(); }); } }; },
+      getLastRow: function () { return filas.length; },
+      appendRow: function (f) { filas.push(f.slice()); },
+      setFrozenRows: function () {},
+      getRange: function (fila, col, nf, nc) {
+        return {
+          setValues: function (v) { v.forEach(function (f, i) { filas[fila - 1 + i] = f.slice(); }); return { setFontWeight: function () {} }; },
+          setValue: function (v) { filas[fila - 1][col - 1] = v; }
+        };
+      }
+    };
+    return h;
+  }
+  let libro = null;
+  const props = { WEBHOOK_SECRETO: 'secreto-sim' }, cache = {};
+  const dos = function (n) { return String(n).padStart(2, '0'); };
+  const SpreadsheetApp = {
+    create: function () {
+      const hojas = [hojaFalsa('Hoja 1')];
+      libro = { getId: function () { return 'SIM'; }, getSheets: function () { return hojas; },
+        insertSheet: function (n) { const x = hojaFalsa(n); hojas.push(x); return x; },
+        getSheetByName: function (n) { return hojas.find(function (x) { return x.nombre === n; }) || null; } };
+      return libro;
+    },
+    openById: function () { return libro; }
+  };
+  const PropertiesService = { getScriptProperties: function () { return { getProperty: function (k) { return props[k] || null; }, setProperty: function (k, v) { props[k] = v; } }; } };
+  const CacheService = { getScriptCache: function () { return { get: function (k) { return cache[k] || null; }, put: function (k, v) { cache[k] = v; } }; } };
+  const LockService = { getScriptLock: function () { return { waitLock: function () {}, releaseLock: function () {} }; } };
+  const ContentService = { createTextOutput: function (t) { return t; } };
+  const HtmlService = { createHtmlOutput: function (h) { return h; } };
+  const Session = { getScriptTimeZone: function () { return 'Atlantic/Canary'; } };
+  const Utilities = {
+    formatDate: function (d, tz, patron) {
+      return patron.replace('yyyy', d.getFullYear()).replace('MM', dos(d.getMonth() + 1)).replace('dd', dos(d.getDate()))
+        .replace('HH', dos(d.getHours())).replace('mm', dos(d.getMinutes()));
+    }
+  };
+  const console = { log: function () {} };
+  let mensajeId = 1;
+  const TG = {
+    mandar: function (chat, texto, teclado) { const id = mensajeId++; alSalir({ tipo: 'mensaje', chat: chat, id: id, texto: texto, teclado: teclado || null }); return { ok: true, result: { message_id: id } }; },
+    documento: function (chat, nombre, html, texto) { alSalir({ tipo: 'documento', chat: chat, id: mensajeId++, nombre: nombre, html: html, texto: texto }); return { ok: true }; },
+    quitarBotones: function (chat, id) { alSalir({ tipo: 'quitar-botones', chat: chat, id: id }); },
+    responderBoton: function () {},
+    foto: function (fileId) { return { fileId: fileId }; }
+  };
+  const MailApp = undefined, ScriptApp = undefined, UrlFetchApp = undefined, Drive = undefined;
+
+// 🗂️ Datos del bot de Manitu: una hoja de Google ("Manitu · datos") que se crea sola la primera vez.
+// Cada persona (su chat de Telegram) solo ve lo suyo: todo va con su chat_id.
+// Nunca se borra nada: lo deshecho se marca en la columna "quitado".
+
+const TABLAS = {
+  Usuarios: ['chat_id', 'nombre', 'oficio', 'telefono', 'precio_hora', 'precio_viaje', 'gasolina', 'margen',
+             'paso', 'datos_paso', 'trabajo_activo', 'alta', 'ultima_vez'],
+  Trabajos: ['id', 'chat_id', 'numero', 'cliente', 'que', 'estado', 'pensaba', 'total', 'creado', 'cerrado', 'quitado'],
+  Gastos:   ['id', 'chat_id', 'trabajo_id', 'cosa', 'importe', 'foto', 'creado', 'quitado'],
+  Apuntes:  ['id', 'chat_id', 'trabajo_id', 'tipo', 'cantidad', 'creado', 'quitado']   // tipo: horas | viaje
+};
+
+// Lo que se pone si la persona no dice otra cosa
+const POR_DEFECTO = { precio_hora: 25, precio_viaje: 12, gasolina: 4, margen: 0.10 };
+
+function libro_() {
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty('HOJA');
+  if (id) return SpreadsheetApp.openById(id);
+  const ss = SpreadsheetApp.create('Manitu · datos');
+  Object.keys(TABLAS).forEach((t, i) => {
+    const hoja = i === 0 ? ss.getSheets()[0].setName(t) : ss.insertSheet(t);
+    hoja.getRange(1, 1, 1, TABLAS[t].length).setValues([TABLAS[t]]).setFontWeight('bold');
+    hoja.setFrozenRows(1);
+  });
+  props.setProperty('HOJA', ss.getId());
+  return ss;
+}
+
+function hoja_(tabla) { return libro_().getSheetByName(tabla); }
+
+// Todas las filas de una tabla como objetos (con su número de fila en _fila)
+function filas_(tabla) {
+  const valores = hoja_(tabla).getDataRange().getValues();
+  const cab = valores[0] || [];
+  const salida = [];
+  for (let i = 1; i < valores.length; i++) {
+    if (valores[i][0] === '' || valores[i][0] === null) continue;
+    const o = { _fila: i + 1 };
+    cab.forEach((k, j) => { o[k] = valores[i][j] instanceof Date ? valores[i][j].getTime() : valores[i][j]; });
+    o.quitado = String(o.quitado) === 'sí';
+    salida.push(o);
+  }
+  return salida;
+}
+
+// Lo de una persona (sin lo quitado)
+function deChat_(tabla, chat) {
+  return filas_(tabla).filter((f) => String(f.chat_id) === String(chat) && !f.quitado);
+}
+
+// Los textos no pueden empezar por "=", "+", "-" o "@": Sheets los tomaría por fórmulas
+function texto_(v, max) {
+  return String(v === null || v === undefined ? '' : v).trim().slice(0, max || 200).replace(/^[=+\-@]+/, '');
+}
+
+function nuevaFila_(tabla, datos) {
+  const fila = TABLAS[tabla].map((k) => (datos[k] !== undefined ? datos[k] : ''));
+  hoja_(tabla).appendRow(fila);
+  return datos;
+}
+
+function cambiar_(tabla, numFila, datos) {
+  const cols = TABLAS[tabla];
+  Object.keys(datos).forEach((k) => {
+    const c = cols.indexOf(k);
+    if (c === -1) throw new Error('columna ' + k);
+    hoja_(tabla).getRange(numFila, c + 1).setValue(datos[k]);
+  });
+}
+
+function nuevoId_(letra) {
+  return letra + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36);
+}
+
+// ---------- Usuarios ----------
+function usuario_(chat) {
+  return filas_('Usuarios').find((u) => String(u.chat_id) === String(chat)) || null;
+}
+
+function guardarUsuario_(chat, datos) {
+  const u = usuario_(chat);
+  if (u) { cambiar_('Usuarios', u._fila, datos); return Object.assign(u, datos); }
+  const nuevo = Object.assign({ chat_id: String(chat), alta: new Date(), paso: '', datos_paso: '{}' }, POR_DEFECTO, datos);
+  nuevaFila_('Usuarios', nuevo);
+  return usuario_(chat);
+}
+
+function ponerPaso_(u, paso, datos) {
+  const cambio = { paso: paso || '', datos_paso: JSON.stringify(datos || {}) };
+  cambiar_('Usuarios', u._fila, cambio);
+  Object.assign(u, cambio);
+}
+
+function datosPaso_(u) {
+  try { return JSON.parse(u.datos_paso || '{}'); } catch (e) { return {}; }
+}
+
+// ---------- Trabajos ----------
+function trabajosAbiertos_(chat) {
+  return deChat_('Trabajos', chat).filter((t) => t.estado === 'abierto');
+}
+
+function trabajo_(chat, id) {
+  return deChat_('Trabajos', chat).find((t) => t.id === id) || null;
+}
+
+// El trabajo al que van los tickets y las horas: el elegido, o el último abierto
+function trabajoActivo_(u) {
+  const abiertos = trabajosAbiertos_(u.chat_id);
+  return abiertos.find((t) => t.id === u.trabajo_activo) || abiertos[abiertos.length - 1] || null;
+}
+
+// Número del trabajo: año-001, 002… para cada persona
+function siguienteNumero_(chat) {
+  const anio = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy');
+  const delAnio = filas_('Trabajos').filter((t) => String(t.chat_id) === String(chat) && String(t.numero).indexOf(anio) === 0).length;
+  return anio + '-' + String(delAnio + 1).padStart(3, '0');
+}
+
+function quitar_(tabla, chat, id) {
+  const f = filas_(tabla).find((x) => x.id === id && String(x.chat_id) === String(chat));
+  if (!f || f.quitado) return null;
+  cambiar_(tabla, f._fila, { quitado: 'sí' });
+  return f;
+}
+
+// 🧮 Las cuentas de un trabajo (las mismas que papel/hacer_papel.py, que ya revisó Emmanuel).
+//   precio justo = material + gestión del material (margen) + horas × €/hora + viajes × €/viaje
+//   lo que de verdad te queda por hora = (lo que cobras − material − gasolina) ÷ horas
+
+function redondear_(n) { return Math.round((Number(n) || 0) * 100) / 100; }
+
+function euros_(n) {
+  const v = redondear_(n);
+  const [ent, dec] = Math.abs(v).toFixed(2).split('.');
+  const miles = ent.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return (v < 0 ? '−' : '') + miles + (dec === '00' ? '' : ',' + dec) + ' €';
+}
+
+function horasTexto_(h) {
+  const v = redondear_(h);
+  return String(v).replace('.', ',') + ' h';
+}
+
+// Junta todo lo apuntado de un trabajo
+function resumenTrabajo_(u, t) {
+  const gastos = deChat_('Gastos', u.chat_id).filter((g) => g.trabajo_id === t.id);
+  const apuntes = deChat_('Apuntes', u.chat_id).filter((a) => a.trabajo_id === t.id);
+  const horas = redondear_(apuntes.filter((a) => a.tipo === 'horas').reduce((s, a) => s + Number(a.cantidad), 0));
+  const viajes = apuntes.filter((a) => a.tipo === 'viaje').reduce((s, a) => s + Number(a.cantidad), 0);
+  return { gastos: gastos, horas: horas, viajes: viajes };
+}
+
+function cuentas_(u, r, pensaba) {
+  const precioHora = Number(u.precio_hora) || POR_DEFECTO.precio_hora;
+  const precioViaje = u.precio_viaje === '' || u.precio_viaje === undefined ? POR_DEFECTO.precio_viaje : Number(u.precio_viaje);
+  const gasolina = u.gasolina === '' || u.gasolina === undefined ? POR_DEFECTO.gasolina : Number(u.gasolina);
+  const margen = u.margen === '' || u.margen === undefined ? POR_DEFECTO.margen : Number(u.margen);
+  const material = redondear_(r.gastos.reduce((s, g) => s + Number(g.importe), 0));
+  const gestion = redondear_(material * margen);
+  const manoObra = redondear_(r.horas * precioHora);
+  const desplazamiento = redondear_(r.viajes * precioViaje);
+  const total = redondear_(material + gestion + manoObra + desplazamiento);
+  const gastosReales = redondear_(material + r.viajes * gasolina);
+  const c = {
+    material: material, gestion: gestion, mano_obra: manoObra, desplazamiento: desplazamiento, total: total,
+    gastos_reales: gastosReales, precio_hora: precioHora, precio_viaje: precioViaje, gasolina: gasolina, margen: margen,
+    horas: r.horas, viajes: r.viajes,
+    por_hora_total: r.horas ? redondear_((total - gastosReales) / r.horas) : null,
+    pensaba: pensaba ? redondear_(pensaba) : null,
+    por_hora_pensaba: pensaba && r.horas ? redondear_((pensaba - gastosReales) / r.horas) : null
+  };
+  return c;
+}
+
+// 📄 El papel para el cliente (como papel/hacer_papel.py): material a precio de ticket, mano de obra,
+// desplazamientos y TOTAL. "No es una factura" (las facturas tienen sus propias normas).
+// Lo privado (cuánto gana por hora) NUNCA va aquí: eso solo se lo dice el bot al que trabaja.
+
+function esc_(t) {
+  return String(t === null || t === undefined ? '' : t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+
+function papelCliente_(u, t, r, c) {
+  const fecha = Utilities.formatDate(new Date(t.cerrado || Date.now()), Session.getScriptTimeZone(), 'dd/MM/yyyy');
+  const material = r.gastos.map((g) => '<tr><td>' + esc_(g.cosa) + '</td><td class="n">' + euros_(g.importe) + '</td></tr>').join('');
+  const filasTrabajo = [
+    ['Mano de obra · ' + horasTexto_(c.horas) + ' × ' + euros_(c.precio_hora), c.mano_obra],
+    c.gestion ? ['Compra y recogida del material', c.gestion] : null,
+    c.viajes ? ['Desplazamientos · ' + c.viajes + ' × ' + euros_(c.precio_viaje), c.desplazamiento] : null
+  ].filter(Boolean).map((f) => '<tr><td>' + esc_(f[0]) + '</td><td class="n">' + euros_(f[1]) + '</td></tr>').join('');
+  const verde = '#2E7D4F';
+  return '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Resumen del trabajo ' + esc_(t.numero) + '</title><style>' +
+    'body{font-family:Arial,Helvetica,sans-serif;color:#1F2328;margin:0;padding:28px;font-size:13px}' +
+    '.cab{border-bottom:3px solid ' + verde + ';padding-bottom:10px;margin-bottom:16px}' +
+    'h1{color:' + verde + ';font-size:22px;margin:0 0 4px}h2{font-size:14px;color:' + verde + ';margin:18px 0 6px;text-transform:uppercase}' +
+    'table{width:100%;border-collapse:collapse}td,th{padding:6px 4px;border-bottom:1px solid #DCE5DF;text-align:left}.n{text-align:right;white-space:nowrap}' +
+    '.sub td{font-weight:bold}.total{margin-top:14px;background:' + verde + ';color:#fff;padding:12px;font-size:18px;font-weight:bold}' +
+    '.total span{float:right}.pie{margin-top:22px;color:#5E6B64;font-size:11px;line-height:1.5}' +
+    '</style></head><body>' +
+    '<div class="cab"><h1>Resumen del trabajo</h1><b>' + esc_(u.nombre) + '</b>' + (u.oficio ? ' · ' + esc_(u.oficio) : '') + (u.telefono ? ' · ' + esc_(u.telefono) : '') +
+    '<br>Nº ' + esc_(t.numero) + ' · ' + fecha + '</div>' +
+    '<h2>Para</h2><p><b>' + esc_(t.cliente) + '</b></p>' +
+    '<h2>Qué se ha hecho</h2><p>' + esc_(t.que) + '</p>' +
+    '<h2>Material utilizado</h2><table>' + (material || '<tr><td>Sin material</td><td class="n">0 €</td></tr>') +
+    '<tr class="sub"><td>Total material (precio de los tickets)</td><td class="n">' + euros_(c.material) + '</td></tr></table>' +
+    '<h2>Trabajo</h2><table>' + filasTrabajo + '</table>' +
+    '<div class="total">TOTAL <span>' + euros_(c.total) + '</span></div>' +
+    '<p class="pie">Los precios del material son los de los tickets de compra.<br>Este documento es un resumen del trabajo realizado, no una factura.<br>' +
+    'Hecho con Manitu · <i>Sin sorpresas para nadie.</i></p></body></html>';
+}
+
+// 🔧 Bot de Telegram de Manitu (20/10/2026)
+// El que trabaja apunta desde el móvil los tickets, las horas y los viajes de cada trabajo.
+// Al cerrarlo, el bot le dice el precio justo, cuánto gana de verdad por hora (solo él lo ve)
+// y le da el papel para el cliente en PDF, listo para reenviar.
+//
+// Cómo habla: un menú grande abajo (MENU) y botones debajo de cada mensaje.
+// Lo que la persona está haciendo (por ejemplo, "escribiendo el nombre del cliente") se guarda en
+// su fila de Usuarios (paso + datos_paso), así el bot sabe qué esperar del siguiente mensaje.
+
+const MENU = [['🔨 Nuevo trabajo', '🧾 Ticket'], ['⏱️ Horas', '🚗 Viaje'], ['✅ Cerrar trabajo', '📊 Mi semana'], ['⚙️ Ajustes', '❓ Ayuda']];
+const OFICIOS = ['Fontanería', 'Electricidad', 'Pintura', 'Albañilería', 'Carpintería', 'De todo un poco'];
+
+// ---------- Puerta de entrada (Telegram llama aquí con cada mensaje) ----------
+function doPost(e) {
+  const secreto = PropertiesService.getScriptProperties().getProperty('WEBHOOK_SECRETO');
+  if (!secreto || !e || !e.parameter || e.parameter.s !== secreto) return ContentService.createTextOutput('no');
+  let update = null;
+  try { update = JSON.parse(e.postData.contents); } catch (err) { return ContentService.createTextOutput('ok'); }
+  procesarUpdate_(update);
+  return ContentService.createTextOutput('ok');
+}
+
+function doGet() {
+  return HtmlService.createHtmlOutput('<p style="font-family:sans-serif">Este es el bot de Manitu. Búscalo en Telegram.</p>');
+}
+
+// Procesa un mensaje de Telegram. Si ya se procesó (Telegram a veces lo manda dos veces), no hace nada.
+function procesarUpdate_(update) {
+  if (!update || update.update_id === undefined) return;
+  const cache = CacheService.getScriptCache();
+  const clave = 'u' + update.update_id;
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    if (cache.get(clave)) return;
+    cache.put(clave, '1', 21600);
+    if (update.callback_query) alPulsarBoton_(update.callback_query);
+    else if (update.message) alRecibirMensaje_(update.message);
+  } catch (err) {
+    console.log('Error: ' + (err && err.stack || err));
+    const chat = (update.message && update.message.chat.id) || (update.callback_query && update.callback_query.message && update.callback_query.message.chat.id);
+    if (chat) { try { TG.mandar(chat, '😕 Algo ha fallado por mi parte. Prueba otra vez y, si sigue, escribe /cancelar.'); } catch (e2) {} }
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// ---------- Mensajes ----------
+function alRecibirMensaje_(m) {
+  if (!m.chat || m.chat.type !== 'private') return;   // solo chats privados
+  const chat = m.chat.id;
+  const texto = String(m.text || '').trim();
+  let u = usuario_(chat);
+
+  if (texto === '/start' && !u) return empezarAlta_(chat);
+  if (!u) return empezarAlta_(chat);
+  cambiar_('Usuarios', u._fila, { ultima_vez: new Date() });
+  if (u.paso && u.paso.indexOf('alta_') === 0) return seguirAlta_(u, m, texto);
+
+  if (texto === '/cancelar') { ponerPaso_(u, ''); return TG.mandar(chat, 'Vale, lo dejamos. ¿Qué quieres hacer?', { menu: true }); }
+  if (texto === '/start') { ponerPaso_(u, ''); return TG.mandar(chat, '¡Hola otra vez, ' + esc_(u.nombre) + '! 👋 ¿Qué quieres hacer?', { menu: true }); }
+  if (texto === '/ayuda' || texto === '❓ Ayuda') return ayuda_(u);
+
+  // Los botones del menú de abajo siempre mandan, aunque estuviera a medias con otra cosa
+  const opciones = {
+    '🔨 Nuevo trabajo': nuevoTrabajo_, '🧾 Ticket': pedirTicket_, '⏱️ Horas': pedirHoras_, '🚗 Viaje': apuntarViaje_,
+    '✅ Cerrar trabajo': pedirCerrar_, '📊 Mi semana': miSemana_, '⚙️ Ajustes': ajustes_
+  };
+  if (opciones[texto]) { ponerPaso_(u, ''); return opciones[texto](u); }
+
+  if (m.photo && m.photo.length) return fotoTicket_(u, m.photo[m.photo.length - 1].file_id, texto || m.caption || '');
+
+  const p = u.paso;
+  if (p === 'nt_cliente') return nuevoTrabajoCliente_(u, texto);
+  if (p === 'nt_que') return nuevoTrabajoQue_(u, texto);
+  if (p === 'ticket') return ticketTexto_(u, texto);
+  if (p === 'ticket_cosa') return ticketCosa_(u, texto);
+  if (p === 'ticket_importe') return ticketImporte_(u, texto);
+  if (p === 'horas_otra') return horasOtra_(u, texto);
+  if (p === 'cerrar_pensaba') return cerrarConPensaba_(u, texto);
+  if (p === 'ocr') return ticketImporte_(u, texto);
+  if (p.indexOf('aj_') === 0) return guardarAjuste_(u, p.slice(3), texto);
+
+  // Atajo: "12,50 tornillos" sin pulsar nada → es un ticket
+  const t = leerTicket_(texto);
+  if (t && t.importe && t.cosa) return guardarTicket_(u, t.importe, t.cosa, '');
+  TG.mandar(chat, 'No te he entendido 🤔\nUsa los botones de abajo, o escribe un ticket así: <b>12,50 tornillos</b>', { menu: true });
+}
+
+// ---------- Botones ----------
+function alPulsarBoton_(q) {
+  const chat = q.message && q.message.chat.id;
+  TG.responderBoton(q.id);
+  if (!chat) return;
+  const u = usuario_(chat);
+  const [accion, a1, a2] = String(q.data || '').split(':');
+  if (!u) return empezarAlta_(chat);
+  if (u.paso && u.paso.indexOf('alta_') === 0) {
+    if (accion === 'oficio' || accion === 'hora' || accion === 'pviaje') return seguirAlta_(u, {}, '', accion, a1);
+    return;
+  }
+  const msg = q.message.message_id;
+  switch (accion) {
+    case 'nuevo': ponerPaso_(u, ''); return nuevoTrabajo_(u);
+    case 'horas': TG.quitarBotones(chat, msg); return a1 === 'otra' ? (ponerPaso_(u, 'horas_otra'), TG.mandar(chat, '¿Cuántas horas? Escribe el número (por ejemplo <b>2,5</b>).')) : apuntarHoras_(u, Number(a1));
+    case 'deshacer': TG.quitarBotones(chat, msg); return deshacer_(u, a1, a2);
+    case 'elegir': return elegirTrabajo_(u);
+    case 'activo': TG.quitarBotones(chat, msg); return cambiarActivo_(u, a1);
+    case 'cerrar': TG.quitarBotones(chat, msg); return preguntarPensaba_(u, a1);
+    case 'saltar': TG.quitarBotones(chat, msg); return cerrarTrabajo_(u, a1, null);
+    case 'reabrir': TG.quitarBotones(chat, msg); return reabrir_(u, a1);
+    case 'papel': return mandarPapel_(u, a1);
+    case 'ocrsi': TG.quitarBotones(chat, msg); return ocrConfirmar_(u, true);
+    case 'ocrno': TG.quitarBotones(chat, msg); return ocrConfirmar_(u, false);
+    case 'aj': return pedirAjuste_(u, a1);
+  }
+}
+
+// ---------- Alta ----------
+function empezarAlta_(chat) {
+  const u = guardarUsuario_(chat, {});
+  ponerPaso_(u, 'alta_nombre');
+  TG.mandar(chat, '¡Hola! 👋 Soy <b>Manitu</b>.\n\nTe ayudo con las cuentas de tus trabajos: tú apuntas los tickets y las horas, ' +
+    'y yo te digo cuánto cobrar para no perder dinero.\n\nPara empezar, ¿cómo te llamas?', { quitarMenu: true });
+}
+
+function seguirAlta_(u, m, texto, accion, valor) {
+  const chat = u.chat_id;
+  if (u.paso === 'alta_nombre') {
+    if (!texto || texto.charAt(0) === '/') return TG.mandar(chat, 'Escríbeme tu nombre 🙂');
+    guardarUsuario_(chat, { nombre: texto_(texto, 40) });
+    ponerPaso_(u, 'alta_oficio');
+    return TG.mandar(chat, 'Encantado, <b>' + esc_(texto_(texto, 40)) + '</b>. ¿A qué te dedicas? Elige uno o escríbelo.',
+      { botones: filasDe_(OFICIOS.map((o) => ({ texto: o, accion: 'oficio:' + o })), 2) });
+  }
+  if (u.paso === 'alta_oficio') {
+    const oficio = accion === 'oficio' ? valor : texto;
+    if (!oficio) return;
+    guardarUsuario_(chat, { oficio: texto_(oficio, 40) });
+    ponerPaso_(u, 'alta_hora');
+    return TG.mandar(chat, '¿Cuánto quieres <b>ganar por cada hora</b> de trabajo? Lo que te queda limpio, sin contar el material.',
+      { botones: [[15, 20, 25].map((n) => ({ texto: n + ' €', accion: 'hora:' + n })), [30, 35, 40].map((n) => ({ texto: n + ' €', accion: 'hora:' + n }))] });
+  }
+  if (u.paso === 'alta_hora') {
+    const n = accion === 'hora' ? Number(valor) : leerNumero_(texto);
+    if (!(n > 0 && n < 500)) return TG.mandar(chat, 'Pulsa un botón o escribe un número, por ejemplo <b>25</b>.');
+    guardarUsuario_(chat, { precio_hora: n });
+    ponerPaso_(u, 'alta_viaje');
+    return TG.mandar(chat, '¿Y cuánto cobras por <b>ir hasta la casa</b> del cliente (desplazamiento)? Si no cobras, pulsa 0.',
+      { botones: [[0, 5, 10].map((n2) => ({ texto: n2 + ' €', accion: 'pviaje:' + n2 })), [12, 15, 20].map((n2) => ({ texto: n2 + ' €', accion: 'pviaje:' + n2 }))] });
+  }
+  if (u.paso === 'alta_viaje') {
+    const n = accion === 'pviaje' ? Number(valor) : leerNumero_(texto);
+    if (!(n >= 0 && n < 500)) return TG.mandar(chat, 'Pulsa un botón o escribe un número, por ejemplo <b>10</b>.');
+    guardarUsuario_(chat, { precio_viaje: n });
+    ponerPaso_(u, '');
+    return TG.mandar(chat, '¡Listo! ✅\n\nAsí funciona:\n1. 🔨 <b>Nuevo trabajo</b> cuando te encarguen algo.\n2. 🧾 Apunta cada <b>ticket</b> (mándame la foto o escribe <b>12,50 tornillos</b>).\n' +
+      '3. ⏱️ Apunta las <b>horas</b> y 🚗 los <b>viajes</b>.\n4. ✅ <b>Cerrar trabajo</b>: te digo el precio justo y te doy el papel para el cliente.\n\nLo cambias todo en ⚙️ Ajustes.', { menu: true });
+  }
+}
+
+function ayuda_(u) {
+  TG.mandar(u.chat_id, '<b>Cómo funciona Manitu</b>\n\n🔨 <b>Nuevo trabajo</b>: cuando te encarguen algo.\n🧾 <b>Ticket</b>: mándame la foto del ticket o escribe <b>12,50 tornillos</b>.\n' +
+    '⏱️ <b>Horas</b> y 🚗 <b>Viaje</b>: lo que dedicas.\n✅ <b>Cerrar trabajo</b>: el precio justo y el papel para el cliente.\n📊 <b>Mi semana</b>: cómo vas.\n\n' +
+    'Si te equivocas, pulsa <b>↶ Deshacer</b>. Si me lío, escribe /cancelar.', { menu: true });
+}
+
+// ---------- Trabajos ----------
+function nuevoTrabajo_(u) {
+  ponerPaso_(u, 'nt_cliente');
+  TG.mandar(u.chat_id, '🔨 <b>Trabajo nuevo</b>\n¿Para quién es? Escribe el nombre del cliente.');
+}
+
+function nuevoTrabajoCliente_(u, texto) {
+  if (!texto) return TG.mandar(u.chat_id, 'Escribe el nombre del cliente 🙂');
+  ponerPaso_(u, 'nt_que', { cliente: texto_(texto, 60) });
+  TG.mandar(u.chat_id, '¿Qué hay que hacer? Por ejemplo: <i>cambiar el grifo de la cocina</i>.');
+}
+
+function nuevoTrabajoQue_(u, texto) {
+  if (!texto) return TG.mandar(u.chat_id, 'Cuéntame en pocas palabras qué hay que hacer.');
+  const d = datosPaso_(u);
+  const t = nuevaFila_('Trabajos', { id: nuevoId_('t'), chat_id: String(u.chat_id), numero: siguienteNumero_(u.chat_id), cliente: d.cliente,
+    que: texto_(texto, 120), estado: 'abierto', creado: new Date(), quitado: '' });
+  cambiar_('Usuarios', u._fila, { trabajo_activo: t.id });
+  ponerPaso_(u, '');
+  TG.mandar(u.chat_id, '🔨 Trabajo <b>nº ' + t.numero + '</b> abierto:\n<b>' + esc_(t.cliente) + '</b> · ' + esc_(t.que) +
+    '\n\nAhora ve apuntando 🧾 tickets, ⏱️ horas y 🚗 viajes. Cuando acabes, ✅ <b>Cerrar trabajo</b>.',
+    { botones: [[{ texto: '↶ Deshacer', accion: 'deshacer:T:' + t.id }]] });
+}
+
+// Devuelve el trabajo activo o avisa de que hace falta abrir uno
+function trabajoParaApuntar_(u) {
+  const t = trabajoActivo_(u);
+  if (!t) TG.mandar(u.chat_id, 'Primero abre un trabajo 🔨', { botones: [[{ texto: '🔨 Abrir un trabajo', accion: 'nuevo' }]] });
+  return t;
+}
+
+function destino_(u, t) {
+  const otros = trabajosAbiertos_(u.chat_id).length > 1;
+  return { texto: '\n→ <b>' + esc_(t.cliente) + '</b> · ' + esc_(t.que), cambiar: otros ? [{ texto: '🔁 Era de otro trabajo', accion: 'elegir' }] : [] };
+}
+
+function elegirTrabajo_(u) {
+  const abiertos = trabajosAbiertos_(u.chat_id);
+  if (!abiertos.length) return trabajoParaApuntar_(u);
+  TG.mandar(u.chat_id, '¿Con qué trabajo sigues?', { botones: abiertos.map((t) => [{ texto: t.cliente + ' · ' + String(t.que).slice(0, 30), accion: 'activo:' + t.id }]) });
+}
+
+function cambiarActivo_(u, id) {
+  const t = trabajo_(u.chat_id, id);
+  if (!t || t.estado !== 'abierto') return TG.mandar(u.chat_id, 'Ese trabajo ya no está abierto.');
+  cambiar_('Usuarios', u._fila, { trabajo_activo: id });
+  // si lo último apuntado iba al trabajo equivocado, se mueve al bueno
+  const ultimo = ultimoApunte_(u);
+  let movido = '';
+  if (ultimo && ultimo.f.trabajo_id !== id && Date.now() - ultimo.f.creado < 10 * 60 * 1000) {
+    cambiar_(ultimo.tabla, ultimo.f._fila, { trabajo_id: id });
+    movido = '\nHe movido lo último que apuntaste a este trabajo.';
+  }
+  TG.mandar(u.chat_id, '👍 Ahora apuntas en: <b>' + esc_(t.cliente) + '</b> · ' + esc_(t.que) + movido, { menu: true });
+}
+
+function ultimoApunte_(u) {
+  const g = deChat_('Gastos', u.chat_id).map((f) => ({ tabla: 'Gastos', f: f }));
+  const a = deChat_('Apuntes', u.chat_id).map((f) => ({ tabla: 'Apuntes', f: f }));
+  return g.concat(a).sort((x, y) => y.f.creado - x.f.creado)[0] || null;
+}
+
+// ---------- Tickets ----------
+function leerNumero_(texto) {
+  const m = String(texto || '').replace(/\s/g, '').match(/^(\d+(?:[.,]\d{1,2})?)€?$/);
+  return m ? Number(m[1].replace(',', '.')) : NaN;
+}
+
+// "12,50 tornillos", "tornillos 12.5", "12,50€ grifo" → { importe, cosa }
+function leerTicket_(texto) {
+  const m = String(texto || '').match(/(\d+(?:[.,]\d{1,2})?)\s*(?:€|eur|euros)?/i);
+  if (!m) return null;
+  const importe = Number(m[1].replace(',', '.'));
+  const cosa = (texto.slice(0, m.index) + ' ' + texto.slice(m.index + m[0].length)).replace(/\s+/g, ' ').trim();
+  if (!(importe > 0 && importe < 100000)) return null;
+  return { importe: Math.round(importe * 100) / 100, cosa: cosa };
+}
+
+function pedirTicket_(u) {
+  if (!trabajoParaApuntar_(u)) return;
+  ponerPaso_(u, 'ticket');
+  TG.mandar(u.chat_id, '🧾 Mándame una <b>foto del ticket</b> 📸\no escribe el importe y qué es. Ejemplo: <b>12,50 tornillos</b>');
+}
+
+function ticketTexto_(u, texto) {
+  const t = leerTicket_(texto);
+  if (!t) return TG.mandar(u.chat_id, 'No veo el importe 🤔 Escríbelo así: <b>12,50 tornillos</b>');
+  if (!t.cosa) { ponerPaso_(u, 'ticket_cosa', { importe: t.importe }); return TG.mandar(u.chat_id, '¿Qué es lo de ' + euros_(t.importe) + '? (por ejemplo: <i>tornillos</i>)'); }
+  guardarTicket_(u, t.importe, t.cosa, '');
+}
+
+function ticketCosa_(u, texto) {
+  const d = datosPaso_(u);
+  if (!texto) return TG.mandar(u.chat_id, '¿Qué es? Escribe una palabra, por ejemplo <i>tornillos</i>.');
+  guardarTicket_(u, d.importe, texto, d.foto || '');
+}
+
+function ticketImporte_(u, texto) {
+  const d = datosPaso_(u);
+  const t = leerTicket_(texto);
+  if (!t) return TG.mandar(u.chat_id, 'Escribe el total del ticket, por ejemplo <b>23,40</b>.');
+  guardarTicket_(u, t.importe, t.cosa || d.cosa || 'Ticket', d.foto || '');
+}
+
+function guardarTicket_(u, importe, cosa, foto) {
+  const t = trabajoParaApuntar_(u);
+  if (!t) return;
+  const g = nuevaFila_('Gastos', { id: nuevoId_('g'), chat_id: String(u.chat_id), trabajo_id: t.id, cosa: texto_(cosa, 80) || 'Ticket',
+    importe: Math.round(Number(importe) * 100) / 100, foto: foto || '', creado: new Date(), quitado: '' });
+  ponerPaso_(u, '');
+  const r = resumenTrabajo_(u, t);
+  const material = r.gastos.reduce((s, x) => s + Number(x.importe), 0);
+  const d = destino_(u, t);
+  TG.mandar(u.chat_id, '🧾 Apuntado: <b>' + euros_(g.importe) + '</b> · ' + esc_(g.cosa) + d.texto + '\nMaterial de este trabajo: ' + euros_(material),
+    { botones: [[{ texto: '↶ Deshacer', accion: 'deshacer:G:' + g.id }].concat(d.cambiar)] });
+}
+
+// ---------- Horas y viajes ----------
+function pedirHoras_(u) {
+  if (!trabajoParaApuntar_(u)) return;
+  TG.mandar(u.chat_id, '⏱️ ¿Cuántas horas has trabajado?', { botones: [
+    [0.5, 1, 1.5, 2].map((n) => ({ texto: String(n).replace('.', ','), accion: 'horas:' + n })),
+    [3, 4, 6, 8].map((n) => ({ texto: String(n), accion: 'horas:' + n })),
+    [{ texto: 'Otra cantidad', accion: 'horas:otra' }]] });
+}
+
+function horasOtra_(u, texto) {
+  const n = leerNumero_(String(texto).replace(/h(oras?)?$/i, ''));
+  if (!(n > 0 && n <= 24)) return TG.mandar(u.chat_id, 'Escribe solo el número de horas, por ejemplo <b>2,5</b>.');
+  apuntarHoras_(u, n);
+}
+
+function apuntarHoras_(u, n) {
+  const t = trabajoParaApuntar_(u);
+  if (!t || !(n > 0 && n <= 24)) return;
+  const a = nuevaFila_('Apuntes', { id: nuevoId_('a'), chat_id: String(u.chat_id), trabajo_id: t.id, tipo: 'horas', cantidad: n, creado: new Date(), quitado: '' });
+  ponerPaso_(u, '');
+  const r = resumenTrabajo_(u, t);
+  const d = destino_(u, t);
+  TG.mandar(u.chat_id, '⏱️ Apuntadas <b>' + horasTexto_(n) + '</b>' + d.texto + '\nLlevas ' + horasTexto_(r.horas) + ' en este trabajo.',
+    { botones: [[{ texto: '↶ Deshacer', accion: 'deshacer:A:' + a.id }].concat(d.cambiar)] });
+}
+
+function apuntarViaje_(u) {
+  const t = trabajoParaApuntar_(u);
+  if (!t) return;
+  const a = nuevaFila_('Apuntes', { id: nuevoId_('a'), chat_id: String(u.chat_id), trabajo_id: t.id, tipo: 'viaje', cantidad: 1, creado: new Date(), quitado: '' });
+  const r = resumenTrabajo_(u, t);
+  const d = destino_(u, t);
+  TG.mandar(u.chat_id, '🚗 Viaje apuntado (ida y vuelta)' + d.texto + '\nLlevas ' + r.viajes + (r.viajes === 1 ? ' viaje.' : ' viajes.'),
+    { botones: [[{ texto: '↶ Deshacer', accion: 'deshacer:A:' + a.id }].concat(d.cambiar)] });
+}
+
+// ---------- Deshacer ----------
+function deshacer_(u, letra, id) {
+  const tabla = { G: 'Gastos', A: 'Apuntes', T: 'Trabajos' }[letra];
+  if (!tabla) return;
+  const f = quitar_(tabla, u.chat_id, id);
+  if (!f) return TG.mandar(u.chat_id, 'Eso ya estaba deshecho.');
+  const que = tabla === 'Gastos' ? 'el ticket de ' + euros_(f.importe) : tabla === 'Trabajos' ? 'el trabajo de ' + esc_(f.cliente) : f.tipo === 'horas' ? 'las ' + horasTexto_(f.cantidad) : 'el viaje';
+  TG.mandar(u.chat_id, '↶ Deshecho: ' + que + '.', { menu: true });
+}
+
+// ---------- Cerrar ----------
+function pedirCerrar_(u) {
+  const abiertos = trabajosAbiertos_(u.chat_id);
+  if (!abiertos.length) return TG.mandar(u.chat_id, 'No tienes trabajos abiertos.', { botones: [[{ texto: '🔨 Abrir un trabajo', accion: 'nuevo' }]] });
+  if (abiertos.length === 1) return preguntarPensaba_(u, abiertos[0].id);
+  TG.mandar(u.chat_id, '¿Qué trabajo has terminado?', { botones: abiertos.map((t) => [{ texto: t.cliente + ' · ' + String(t.que).slice(0, 30), accion: 'cerrar:' + t.id }]) });
+}
+
+function preguntarPensaba_(u, id) {
+  const t = trabajo_(u.chat_id, id);
+  if (!t || t.estado !== 'abierto') return TG.mandar(u.chat_id, 'Ese trabajo ya está cerrado.');
+  const r = resumenTrabajo_(u, t);
+  if (!r.horas) return TG.mandar(u.chat_id, 'Antes de cerrar, apunta las ⏱️ <b>horas</b> que te ha llevado.', { botones: [[{ texto: '⏱️ Apuntar horas', accion: 'horas:otra' }]] });
+  ponerPaso_(u, 'cerrar_pensaba', { trabajo: id });
+  TG.mandar(u.chat_id, '✅ Vamos a cerrar <b>' + esc_(t.cliente) + '</b> · ' + esc_(t.que) + '\n\nAntes de que te diga mis cuentas: ¿cuánto <b>pensabas cobrarle</b>? Escribe el número.',
+    { botones: [[{ texto: 'No lo sé, sáltalo', accion: 'saltar:' + id }]] });
+}
+
+function cerrarConPensaba_(u, texto) {
+  const d = datosPaso_(u);
+  const n = leerNumero_(texto);
+  if (!(n > 0)) return TG.mandar(u.chat_id, 'Escribe solo el número, por ejemplo <b>120</b>. O pulsa «No lo sé».');
+  cerrarTrabajo_(u, d.trabajo, n);
+}
+
+function cerrarTrabajo_(u, id, pensaba) {
+  const t = trabajo_(u.chat_id, id);
+  if (!t || t.estado !== 'abierto') return TG.mandar(u.chat_id, 'Ese trabajo ya está cerrado.');
+  const r = resumenTrabajo_(u, t);
+  const c = cuentas_(u, r, pensaba);
+  cambiar_('Trabajos', t._fila, { estado: 'cerrado', cerrado: new Date(), pensaba: pensaba || '', total: c.total });
+  ponerPaso_(u, '');
+  TG.mandar(u.chat_id, textoCuentas_(t, c), { botones: [[{ texto: '📄 Papel para el cliente', accion: 'papel:' + t.id }], [{ texto: '↩ Reabrir el trabajo', accion: 'reabrir:' + t.id }]] });
+  mandarPapel_(u, t.id);
+}
+
+function textoCuentas_(t, c) {
+  const l = ['✅ <b>Trabajo cerrado</b>: ' + esc_(t.cliente) + ' · ' + esc_(t.que), '',
+    '🧾 Material: ' + euros_(c.material) + (c.gestion ? '\n🛒 Comprarlo y traerlo (' + Math.round(c.margen * 100) + ' %): ' + euros_(c.gestion) : ''),
+    '⏱️ Mano de obra: ' + horasTexto_(c.horas) + ' × ' + euros_(c.precio_hora) + ' = ' + euros_(c.mano_obra),
+    c.viajes ? '🚗 Desplazamientos: ' + c.viajes + ' × ' + euros_(c.precio_viaje) + ' = ' + euros_(c.desplazamiento) : null,
+    '', '💶 <b>PRECIO JUSTO: ' + euros_(c.total) + '</b>', '',
+    '🔒 <i>Tu cuenta (solo la ves tú):</i>'].filter((x) => x !== null);
+  if (c.pensaba) {
+    l.push('Pensabas cobrar ' + euros_(c.pensaba) + '. Quitando material y gasolina, te quedarían ' + euros_(c.pensaba - c.gastos_reales) +
+      ' por ' + horasTexto_(c.horas) + ' = <b>' + euros_(c.por_hora_pensaba) + ' la hora</b>.');
+    if (c.por_hora_pensaba < c.precio_hora) l.push('⚠️ Es menos de los ' + euros_(c.precio_hora) + '/h que quieres ganar. Con el precio justo te quedan ' + euros_(c.por_hora_total) + ' la hora.');
+    else l.push('👍 Bien: es lo que quieres ganar o más.');
+  } else {
+    l.push('Con el precio justo te quedan <b>' + euros_(c.por_hora_total) + ' la hora</b>, ya quitado el material y la gasolina.');
+  }
+  return l.join('\n');
+}
+
+function mandarPapel_(u, id) {
+  const t = trabajo_(u.chat_id, id);
+  if (!t) return;
+  const r = resumenTrabajo_(u, t);
+  const c = cuentas_(u, r, t.pensaba || null);
+  TG.documento(u.chat_id, 'Resumen del trabajo ' + t.numero, papelCliente_(u, t, r, c), '📄 Papel para ' + t.cliente + '. Reenvíaselo tal cual (no lleva tus cuentas privadas).');
+}
+
+function reabrir_(u, id) {
+  const t = trabajo_(u.chat_id, id);
+  if (!t || t.estado !== 'cerrado') return;
+  cambiar_('Trabajos', t._fila, { estado: 'abierto', cerrado: '', total: '' });
+  cambiar_('Usuarios', u._fila, { trabajo_activo: id });
+  TG.mandar(u.chat_id, '↩ Trabajo reabierto: <b>' + esc_(t.cliente) + '</b>. Puedes seguir apuntando.', { menu: true });
+}
+
+// ---------- Mi semana ----------
+function miSemana_(u) {
+  TG.mandar(u.chat_id, textoSemana_(u), { menu: true });
+}
+
+function textoSemana_(u) {
+  const desde = Date.now() - 7 * 24 * 3600 * 1000;
+  const trabajos = deChat_('Trabajos', u.chat_id);
+  const cerrados = trabajos.filter((t) => t.estado === 'cerrado' && t.cerrado >= desde);
+  const abiertos = trabajos.filter((t) => t.estado === 'abierto');
+  const horas = deChat_('Apuntes', u.chat_id).filter((a) => a.tipo === 'horas' && a.creado >= desde).reduce((s, a) => s + Number(a.cantidad), 0);
+  const material = deChat_('Gastos', u.chat_id).filter((g) => g.creado >= desde).reduce((s, g) => s + Number(g.importe), 0);
+  const justo = cerrados.reduce((s, t) => s + Number(t.total || 0), 0);
+  const menos = cerrados.filter((t) => t.pensaba && Number(t.pensaba) < Number(t.total));
+  const l = ['📊 <b>Tus últimos 7 días</b>', '',
+    '✅ Trabajos cerrados: ' + cerrados.length + (cerrados.length ? ' (precio justo: ' + euros_(justo) + ')' : ''),
+    '⏱️ Horas apuntadas: ' + horasTexto_(horas), '🧾 Material comprado: ' + euros_(material)];
+  if (menos.length) l.push('⚠️ En ' + menos.length + (menos.length === 1 ? ' trabajo pensabas' : ' trabajos pensabas') + ' cobrar menos de lo justo: ' +
+    euros_(menos.reduce((s, t) => s + Number(t.total) - Number(t.pensaba), 0)) + ' de diferencia.');
+  if (abiertos.length) l.push('', '🔨 Abiertos: ' + abiertos.map((t) => esc_(t.cliente)).join(', '));
+  return l.join('\n');
+}
+
+// Cada lunes a las 8 (disparador que crea conectar): el resumen a quien haya usado el bot en la semana.
+function resumenLunes() {
+  const desde = Date.now() - 7 * 24 * 3600 * 1000;
+  filas_('Usuarios').filter((u) => u.ultima_vez >= desde && !u.paso).forEach((u) => {
+    try { TG.mandar(u.chat_id, textoSemana_(u)); } catch (e) { console.log(e); }
+  });
+}
+
+// ---------- Ajustes ----------
+const AJUSTES = {
+  hora: { campo: 'precio_hora', nombre: '💶 Lo que quieres ganar por hora', pide: '¿Cuánto quieres ganar por hora? Escribe el número (por ejemplo <b>25</b>).', num: true, max: 500 },
+  viaje: { campo: 'precio_viaje', nombre: '🚗 Lo que cobras por desplazamiento', pide: '¿Cuánto cobras por ir a casa del cliente? (por ejemplo <b>12</b>, o <b>0</b>)', num: true, max: 500 },
+  gasolina: { campo: 'gasolina', nombre: '⛽ Lo que te gastas por viaje', pide: '¿Cuánto te gastas en gasolina en cada viaje, ida y vuelta? (por ejemplo <b>4</b>)', num: true, max: 200 },
+  margen: { campo: 'margen', nombre: '🛒 Por comprar y traer el material', pide: '¿Qué tanto por ciento cobras por ir a comprar y traer el material? (por ejemplo <b>10</b>, o <b>0</b>)', num: true, max: 100, porcentaje: true },
+  telefono: { campo: 'telefono', nombre: '📞 Tu teléfono (sale en el papel)', pide: 'Escribe el teléfono que quieres que salga en el papel del cliente.' },
+  nombre: { campo: 'nombre', nombre: '🙂 Tu nombre', pide: '¿Cómo quieres que salga tu nombre en el papel?' },
+  oficio: { campo: 'oficio', nombre: '🔧 Tu oficio', pide: '¿A qué te dedicas? (sale en el papel)' }
+};
+
+function ajustes_(u) {
+  const v = (k) => {
+    const a = AJUSTES[k], x = u[a.campo];
+    if (x === '' || x === undefined || x === null) return '—';
+    return a.porcentaje ? Math.round(Number(x) * 100) + ' %' : a.num ? euros_(x) : esc_(x);
+  };
+  TG.mandar(u.chat_id, '⚙️ <b>Tus ajustes</b>\n\n' + Object.keys(AJUSTES).map((k) => AJUSTES[k].nombre + ': <b>' + v(k) + '</b>').join('\n') + '\n\n¿Qué quieres cambiar?',
+    { botones: filasDe_(Object.keys(AJUSTES).map((k) => ({ texto: AJUSTES[k].nombre.split(' ')[0] + ' ' + AJUSTES[k].nombre.split(' ').slice(1, 4).join(' '), accion: 'aj:' + k })), 2) });
+}
+
+function pedirAjuste_(u, k) {
+  if (!AJUSTES[k]) return;
+  ponerPaso_(u, 'aj_' + k);
+  TG.mandar(u.chat_id, AJUSTES[k].pide);
+}
+
+function guardarAjuste_(u, k, texto) {
+  const a = AJUSTES[k];
+  if (!a) { ponerPaso_(u, ''); return; }
+  let v;
+  if (a.num) {
+    const n = leerNumero_(String(texto).replace('%', ''));
+    if (!(n >= 0 && n <= a.max)) return TG.mandar(u.chat_id, 'Escribe solo el número, por favor.');
+    v = a.porcentaje ? n / 100 : n;
+  } else {
+    if (!texto) return TG.mandar(u.chat_id, a.pide);
+    v = texto_(texto, 40);
+  }
+  guardarUsuario_(u.chat_id, { [a.campo]: v });
+  ponerPaso_(u, '');
+  TG.mandar(u.chat_id, '✅ Guardado.', { menu: true });
+}
+
+// ---------- Utilidades ----------
+function filasDe_(botones, porFila) {
+  const filas = [];
+  for (let i = 0; i < botones.length; i += porFila) filas.push(botones.slice(i, i + porFila));
+  return filas;
+}
+
+// 📸 Leer el ticket de una foto con el OCR GRATIS de Google Drive (no Cloud Vision, que pide tarjeta).
+// Truco: se sube la foto a Drive pidiendo que la convierta en documento de Google; Drive lee el texto
+// de la imagen; se saca el TOTAL y se borra el documento. La foto se guarda en Drive (carpeta del bot).
+
+function fotoTicket_(u, fileId, nota) {
+  const t = trabajoParaApuntar_(u);
+  if (!t) return;
+  TG.mandar(u.chat_id, '📸 Leyendo el ticket…');
+  let fotoId = '', importe = null;
+  try {
+    const blob = TG.foto(fileId);
+    if (blob) {
+      fotoId = guardarFoto_(blob, t.numero);
+      importe = totalDelTicket_(textoDeFoto_(blob));
+    }
+  } catch (e) {
+    console.log('OCR: ' + e);
+  }
+  if (importe) {
+    ponerPaso_(u, 'ocr', { importe: importe, foto: fotoId, cosa: nota || '' });
+    return TG.mandar(u.chat_id, 'He leído el ticket: <b>TOTAL ' + euros_(importe) + '</b>. ¿Está bien?',
+      { botones: [[{ texto: '✅ Sí', accion: 'ocrsi' }, { texto: '✏️ No, lo escribo yo', accion: 'ocrno' }]] });
+  }
+  ponerPaso_(u, 'ticket_importe', { foto: fotoId, cosa: nota || '' });
+  TG.mandar(u.chat_id, 'No he podido leer el total 😕 (a veces pasa si la foto está movida o con poca luz).\n¿Cuánto es? Escríbelo así: <b>23,40 tornillos</b>');
+}
+
+function ocrConfirmar_(u, bien) {
+  const d = datosPaso_(u);
+  if (u.paso !== 'ocr') return;
+  if (!bien) {
+    ponerPaso_(u, 'ticket_importe', { foto: d.foto, cosa: d.cosa });
+    return TG.mandar(u.chat_id, 'Vale. ¿Cuánto es? Escríbelo así: <b>23,40 tornillos</b>');
+  }
+  if (d.cosa) return guardarTicket_(u, d.importe, d.cosa, d.foto);
+  ponerPaso_(u, 'ticket_cosa', { importe: d.importe, foto: d.foto });
+  TG.mandar(u.chat_id, '¿Qué compraste? Una o dos palabras (por ejemplo: <i>material de fontanería</i>).');
+}
+
+// Busca el total: primero en las líneas con "TOTAL" (que no sean subtotal, base o IVA); si no, el importe más alto.
+function totalDelTicket_(texto) {
+  if (!texto) return null;
+  const importes = (linea) => (linea.match(/\d{1,5}[.,]\d{2}(?!\d)/g) || []).map((x) => Number(x.replace(/\.(?=\d{3})/g, '').replace(',', '.')));
+  const lineas = String(texto).split(/\n/);
+  for (let i = 0; i < lineas.length; i++) {
+    const l = lineas[i].toLowerCase();
+    if (/total/.test(l) && !/sub|base|iva|igic|imp/.test(l)) {
+      const aqui = importes(lineas[i]).concat(importes(lineas[i + 1] || ''));
+      if (aqui.length) return aqui[0];
+    }
+  }
+  const todos = importes(texto).filter((n) => n > 0 && n < 10000);
+  return todos.length ? Math.max.apply(null, todos) : null;
+}
+
+function carpetaFotos_() {
+  const props = PropertiesService.getScriptProperties();
+  let id = props.getProperty('CARPETA_FOTOS');
+  if (id) return id;
+  const carpeta = Drive.Files.create({ name: 'Manitu · fotos de tickets', mimeType: 'application/vnd.google-apps.folder' });
+  props.setProperty('CARPETA_FOTOS', carpeta.id);
+  return carpeta.id;
+}
+
+function guardarFoto_(blob, numero) {
+  const f = Drive.Files.create({ name: 'Ticket ' + numero + ' ' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH.mm') + '.jpg', parents: [carpetaFotos_()] }, blob);
+  return f.id;
+}
+
+function textoDeFoto_(blob) {
+  const doc = Drive.Files.create({ name: 'ocr-temporal', mimeType: 'application/vnd.google-apps.document' }, blob, { ocrLanguage: 'es' });
+  try {
+    return UrlFetchApp.fetch('https://www.googleapis.com/drive/v3/files/' + doc.id + '/export?mimeType=text/plain',
+      { headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() } }).getContentText();
+  } finally {
+    try { Drive.Files.remove(doc.id); } catch (e) { try { Drive.Files.update({ trashed: true }, doc.id); } catch (e2) {} }
+  }
+}
+
+
+  // En el simulador las fotos no van a Drive: el "OCR" devuelve un ticket de ejemplo.
+  function guardarFoto_() { return 'foto-sim'; }
+  function textoDeFoto_(blob) { return opciones.textoTicket !== undefined ? opciones.textoTicket : 'FERRETERIA EL CLAVO\nTUBO MULTICAPA 9,60\nCODOS 7,40\nSUBTOTAL 15,70\nIGIC 7% 1,10\nTOTAL 17,00\nGRACIAS'; }
+
+  let updateId = 1;
+  return {
+    mensaje: function (chat, texto, nombre) {
+      procesarUpdate_({ update_id: updateId++, message: { message_id: mensajeId++, chat: { id: chat, type: 'private', first_name: nombre || 'Prueba' }, text: texto, date: Date.now() / 1000 } });
+    },
+    foto: function (chat, nota) {
+      procesarUpdate_({ update_id: updateId++, message: { message_id: mensajeId++, chat: { id: chat, type: 'private' }, photo: [{ file_id: 'p1' }, { file_id: 'p2' }], caption: nota || '', date: Date.now() / 1000 } });
+    },
+    boton: function (chat, mensaje, datos) {
+      procesarUpdate_({ update_id: updateId++, callback_query: { id: 'q' + updateId, data: datos, message: { message_id: mensaje, chat: { id: chat, type: 'private' } } } });
+    },
+    repetir: function (update) { procesarUpdate_(update); },
+    doPost: function (e) { return doPost(e); },
+    filas: function (t) { return filas_(t); },
+    menu: MENU,
+    ajustarHace: function (tabla, dias) {   // para probar "Mi semana": mueve fechas al pasado
+      const h = libro.getSheetByName(tabla), v = h.getDataRange().getValues(), c = v[0].indexOf('creado');
+      for (let i = 1; i < v.length; i++) h.getRange(i + 1, c + 1).setValue(new Date(Date.now() - dias * 864e5));
+    }
+  };
+}
+if (typeof module !== 'undefined') module.exports = { crearBotSimulado: crearBotSimulado };
+</script>
+<script>
+const CHAT = 4242;
+const $ = (s) => document.querySelector(s);
+const chat = $("#chat");
+let menuVisible = false;
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+// El bot escribe con <b> e <i> (como Telegram): solo se dejan esas etiquetas
+const formato = (t) => esc(t).replace(/&lt;(\/?)(b|i)&gt;/g, "<$1$2>").replace(/\n/g, "<br>");
+const bajar = () => { chat.scrollTop = chat.scrollHeight; };
+
+const bot = crearBotSimulado((x) => {
+  if (x.tipo === "mensaje") {
+    const b = document.createElement("div");
+    b.className = "burbuja bot"; b.dataset.id = x.id; b.innerHTML = formato(x.texto);
+    chat.appendChild(b);
+    if (x.teclado && x.teclado.botones) {
+      const zona = document.createElement("div");
+      zona.className = "botones"; zona.dataset.para = x.id;
+      zona.innerHTML = x.teclado.botones.map((fila) => '<div class="fila">' + fila.map((k) => '<button data-accion="' + esc(k.accion) + '">' + esc(k.texto) + "</button>").join("") + "</div>").join("");
+      zona.querySelectorAll("button").forEach((k) => k.onclick = () => { bot.boton(CHAT, x.id, k.dataset.accion); bajar(); });
+      chat.appendChild(zona);
+    }
+    if (x.teclado && x.teclado.menu) ponerMenu(true);
+    if (x.teclado && x.teclado.quitarMenu) ponerMenu(false);
+  } else if (x.tipo === "documento") {
+    const b = document.createElement("div");
+    b.className = "burbuja bot doc";
+    b.innerHTML = '<div class="ico">PDF</div><div><b>' + esc(x.nombre) + '.pdf</b><small>Pulsa para verlo</small></div>';
+    b.onclick = () => { const w = window.open(URL.createObjectURL(new Blob([x.html], { type: "text/html" })), "_blank"); if (!w) alert("Permite las ventanas emergentes para ver el PDF."); };
+    chat.appendChild(b);
+    if (x.texto) { const t = document.createElement("div"); t.className = "burbuja bot"; t.innerHTML = formato(x.texto); chat.appendChild(t); }
+  } else if (x.tipo === "quitar-botones") {
+    const z = chat.querySelector('.botones[data-para="' + x.id + '"]'); if (z) z.remove();
+  }
+  bajar();
+});
+
+function ponerMenu(si) {
+  menuVisible = si;
+  const m = $("#menu");
+  m.hidden = !si;
+  m.innerHTML = si ? bot.menu.flat().map((t) => "<button>" + esc(t) + "</button>").join("") : "";
+  m.querySelectorAll("button").forEach((k) => k.onclick = () => yo(k.textContent));
+}
+function yo(texto) {
+  const b = document.createElement("div");
+  b.className = "burbuja yo"; b.textContent = texto;
+  chat.appendChild(b);
+  bot.mensaje(CHAT, texto, "Prueba");
+  bajar();
+}
+$("#empezar").onclick = () => { $("#empezar").remove(); yo("/start"); $("#texto").focus(); };
+$("#form").onsubmit = (e) => {
+  e.preventDefault();
+  const t = $("#texto").value.trim(); if (!t) return;
+  if ($("#empezar")) $("#empezar").remove();
+  $("#texto").value = ""; yo(t);
+};
+$("#foto").onclick = () => {
+  if ($("#empezar")) { $("#empezar").remove(); yo("/start"); return; }
+  const b = document.createElement("div");
+  b.className = "burbuja yo"; b.innerHTML = '<div class="foto">🧾 foto del ticket</div>';
+  chat.appendChild(b); bot.foto(CHAT); bajar();
+};
+</script>
+</body>
+</html>
