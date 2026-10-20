@@ -1,0 +1,1252 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#23314D">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Mando">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icono-32.png">
+<link rel="apple-touch-icon" href="icono-180.png">
+<title>Centro de mando</title>
+<style>
+  :root {
+    --fondo: #F3F1EC; --papel: #FFFFFF; --tinta: #1F2328; --gris: #6B6F76; --linea: #E3E0D8;
+    --mando: #23314D; --mando-claro: #E6EAF3; --ambar: #C9851B; --ambar-claro: #FBF0DC;
+    --verde: #1E7B4A; --verde-claro: #E3F3E9; --rojo: #B3261E; --rojo-claro: #FBE7E5; --azul: #2457A6;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fondo); color: var(--tinta); font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; font-size: 16px; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; border: 0; background: none; }
+  :focus-visible { outline: 3px solid var(--ambar); outline-offset: 2px; }
+  h1, h2, h3 { margin: 0; }
+  .oculto { display: none !important; }
+
+  /* Entrada */
+  .entrada { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; }
+  .caja { background: var(--papel); border-radius: 20px; padding: 28px 24px; width: 100%; max-width: 400px; box-shadow: 0 6px 30px rgba(0,0,0,.08); }
+  .logo { font-size: 40px; }
+  .caja h1 { font-size: 26px; margin: 6px 0 4px; }
+  .caja p { color: var(--gris); margin: 0 0 18px; line-height: 1.5; }
+  .eleccion { display: grid; gap: 10px; }
+  .eleccion button { border: 2px solid var(--linea); border-radius: 14px; padding: 16px; text-align: left; font-size: 17px; font-weight: 700; display: flex; gap: 12px; align-items: center; }
+  .eleccion button small { display: block; font-weight: 400; color: var(--gris); font-size: 14px; }
+  .eleccion button span { font-size: 28px; }
+  .campo { display: block; margin-bottom: 12px; }
+  .campo b { display: block; font-size: 14px; color: var(--gris); margin: 0 0 5px 2px; font-weight: 600; }
+  .campo input, .campo select, .campo textarea { width: 100%; border: 2px solid var(--linea); border-radius: 12px; padding: 11px 12px; background: #fff; font-size: 16px; }
+  .campo textarea { min-height: 90px; resize: vertical; }
+  .principal { background: var(--mando); color: #fff; border-radius: 12px; padding: 13px 18px; font-weight: 700; font-size: 16px; }
+  .secundario { background: var(--mando-claro); color: var(--mando); border-radius: 12px; padding: 11px 16px; font-weight: 700; }
+  .ancho { width: 100%; }
+  .error { color: var(--rojo); min-height: 22px; margin-top: 10px; font-size: 15px; }
+  .recordar { display: flex; gap: 8px; align-items: center; color: var(--gris); font-size: 15px; margin: 4px 0 14px; }
+  .enlace { color: var(--gris); text-decoration: underline; padding: 8px 0; font-size: 15px; }
+
+  /* Jefe */
+  .app { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+  .menu { background: var(--mando); color: #fff; padding: 18px 12px; position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 2px; }
+  .menu .marca { font-weight: 800; font-size: 18px; padding: 4px 10px 16px; }
+  .menu .marca small { display: block; font-weight: 400; opacity: .7; font-size: 13px; }
+  .menu button { color: #fff; text-align: left; padding: 10px 12px; border-radius: 10px; font-size: 15px; display: flex; gap: 10px; align-items: center; opacity: .85; }
+  .menu button:hover { background: rgba(255,255,255,.08); opacity: 1; }
+  .menu button.activa { background: rgba(255,255,255,.16); opacity: 1; font-weight: 700; }
+  .menu .salir { margin-top: auto; }
+  .num { margin-left: auto; background: var(--ambar); color: #fff; border-radius: 20px; font-size: 12px; padding: 1px 8px; font-weight: 700; }
+  main { padding: 26px 28px 60px; max-width: 1100px; width: 100%; }
+  .cabecera { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+  .cabecera h1 { font-size: 26px; }
+  .cabecera .derecha { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+  .sub { color: var(--gris); margin: -10px 0 18px; line-height: 1.5; }
+  .rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+  .tarjeta { background: var(--papel); border-radius: 16px; padding: 16px 18px; border: 1px solid var(--linea); }
+  .tarjeta h3 { font-size: 15px; color: var(--gris); font-weight: 600; margin-bottom: 8px; display: flex; gap: 8px; align-items: center; }
+  .tarjeta .grande { font-size: 30px; font-weight: 800; }
+  .tarjeta .grande small { font-size: 15px; color: var(--gris); font-weight: 400; }
+  .tarjeta p { margin: 6px 0 0; color: var(--gris); font-size: 14px; line-height: 1.45; }
+  .tarjeta.clic { cursor: pointer; }
+  .tarjeta.clic:hover { border-color: var(--mando); }
+  .ancha { grid-column: 1 / -1; }
+  .lista { display: grid; gap: 8px; }
+  .item { background: var(--papel); border: 1px solid var(--linea); border-radius: 14px; padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start; }
+  .item .cuerpo { flex: 1; min-width: 0; }
+  .item .titulo { font-weight: 700; }
+  .item .detalle { color: var(--gris); font-size: 14px; margin-top: 3px; line-height: 1.45; overflow-wrap: anywhere; }
+  .item .acciones { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .item .acciones button { padding: 7px 10px; border-radius: 10px; background: #F1EFEA; font-size: 14px; font-weight: 600; white-space: nowrap; }
+  .item.quitado { opacity: .55; }
+  .marca-check { width: 30px; height: 30px; flex: none; border-radius: 50%; border: 2px solid var(--linea); display: grid; place-items: center; font-size: 16px; background: #fff; }
+  .marca-check.si { background: var(--verde); border-color: var(--verde); color: #fff; }
+  .chip { display: inline-block; font-size: 12px; font-weight: 700; border-radius: 20px; padding: 2px 9px; margin: 2px 4px 0 0; background: #EEE; color: var(--gris); }
+  .chip.principal { background: var(--rojo-claro); color: var(--rojo); }
+  .chip.secundaria { background: var(--ambar-claro); color: #8A5A0E; }
+  .chip.terciaria { background: var(--mando-claro); color: var(--mando); }
+  .chip.verde { background: var(--verde-claro); color: var(--verde); }
+  .chip.ambar { background: var(--ambar-claro); color: #8A5A0E; }
+  .chip.rojo { background: var(--rojo-claro); color: var(--rojo); }
+  .pestanas { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+  .pestanas button { padding: 9px 14px; border-radius: 20px; background: var(--papel); border: 1px solid var(--linea); font-weight: 600; font-size: 15px; }
+  .pestanas button.activa { background: var(--mando); color: #fff; border-color: var(--mando); }
+  .vacio { color: var(--gris); text-align: center; padding: 26px 12px; background: var(--papel); border-radius: 14px; border: 1px dashed var(--linea); line-height: 1.5; }
+  .barra { height: 10px; border-radius: 6px; background: #EEE; overflow: hidden; margin-top: 8px; }
+  .barra div { height: 100%; background: var(--verde); border-radius: 6px; }
+  .tres { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .tres div { background: var(--fondo); border-radius: 12px; padding: 10px; }
+  .tres b { display: block; font-size: 20px; }
+  .tres span { color: var(--gris); font-size: 13px; }
+  .mas { color: var(--verde); } .menos { color: var(--rojo); }
+  .pasos { display: flex; gap: 3px; margin-top: 8px; }
+  .pasos i { flex: 1; height: 6px; border-radius: 3px; background: #E7E4DD; }
+  .pasos i.si { background: var(--ambar); }
+
+  /* Ventana */
+  .velo { position: fixed; inset: 0; background: rgba(20,24,32,.45); display: grid; place-items: center; padding: 16px; z-index: 10; }
+  .ventana { background: var(--papel); border-radius: 18px; padding: 20px; width: 100%; max-width: 520px; max-height: 92vh; overflow-y: auto; }
+  .ventana h2 { font-size: 20px; margin-bottom: 14px; }
+  .ventana .botones { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; flex-wrap: wrap; }
+  .codigo-grande { font-size: 40px; font-weight: 800; letter-spacing: 6px; text-align: center; background: var(--ambar-claro); border-radius: 14px; padding: 14px; margin: 10px 0; }
+  .aviso { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--tinta); color: #fff; border-radius: 14px; padding: 12px 16px; display: flex; gap: 14px; align-items: center; z-index: 20; max-width: calc(100% - 32px); }
+  .aviso button { color: #FFD27A; font-weight: 700; }
+  .cargando { opacity: .6; pointer-events: none; }
+
+  /* Equipo */
+  .equipo { max-width: 640px; margin: 0 auto; padding: 22px 16px 60px; }
+  .equipo .hola { background: var(--mando); color: #fff; border-radius: 18px; padding: 20px; margin-bottom: 16px; }
+  .equipo .hola h1 { font-size: 24px; }
+  .equipo .hola p { margin: 6px 0 0; opacity: .85; line-height: 1.5; }
+  .mision { background: var(--papel); border: 1px solid var(--linea); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+  .mision h2 { font-size: 18px; margin: 6px 0; }
+  .mision .bloque { background: var(--fondo); border-radius: 12px; padding: 10px 12px; margin-top: 10px; line-height: 1.5; white-space: pre-line; font-size: 15px; }
+  .mision .bloque b { display: block; font-size: 13px; color: var(--gris); margin-bottom: 2px; }
+  .mision .botones { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .mision.hecha { opacity: .7; }
+  .demo { background: var(--ambar-claro); color: #8A5A0E; text-align: center; padding: 8px 12px; font-size: 14px; }
+  .chip.atrasada { background: var(--rojo); color: #fff; }
+  .rapido { position: fixed; right: 20px; bottom: 20px; width: 58px; height: 58px; border-radius: 50%; background: var(--ambar); color: #fff; font-size: 30px; font-weight: 700; box-shadow: 0 6px 20px rgba(0,0,0,.25); z-index: 8; }
+  .rapido-tipos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tablon { background: var(--ambar-claro); border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; line-height: 1.5; white-space: pre-line; }
+  .tablon b { display: block; font-size: 13px; color: #8A5A0E; }
+  .instalar { background: var(--ambar); color: #fff; }
+  .visita { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); width: calc(100% - 32px); max-width: 560px; background: var(--tinta); color: #fff; border-radius: 18px; padding: 16px 18px; z-index: 30; box-shadow: 0 10px 40px rgba(0,0,0,.35); }
+  .visita small { opacity: .7; }
+  .visita h3 { font-size: 18px; margin: 4px 0 6px; }
+  .visita p { margin: 0 0 12px; line-height: 1.5; }
+  .visita .botones { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+  .visita button { color: #fff; padding: 9px 14px; border-radius: 10px; font-weight: 700; }
+  .visita .sig { background: var(--ambar); }
+  .visita .atras { background: rgba(255,255,255,.12); }
+  .visita .fuera { margin-right: auto; opacity: .7; text-decoration: underline; padding-left: 0; }
+  body.en-visita main, body.en-visita .equipo { padding-bottom: 220px; }
+  body.en-visita .rapido { display: none; }
+  .ver-demo { display: block; text-align: center; margin-top: 14px; color: var(--gris); font-size: 15px; }
+
+  @media (max-width: 760px) {
+    .app { grid-template-columns: 1fr; }
+    .menu { position: sticky; top: 0; height: auto; flex-direction: row; overflow-x: auto; padding: 8px; z-index: 5; gap: 4px; }
+    .menu .marca { display: none; }
+    .menu button { white-space: nowrap; padding: 9px 10px; font-size: 14px; }
+    .menu .salir { margin-top: 0; }
+    main { padding: 18px 16px 60px; }
+    .item { flex-wrap: wrap; }
+    .item .acciones { width: 100%; justify-content: flex-start; }
+  }
+</style>
+</head>
+<body>
+<div id="demo" class="demo oculto">Modo de prueba: los datos son de ejemplo y no se guardan en ningún sitio.</div>
+
+<!-- Entrada -->
+<section id="entrada" class="entrada">
+  <div class="caja">
+    <div class="logo">🧭</div>
+    <h1>Centro de mando</h1>
+    <p id="entrada-texto">¿Quién eres?</p>
+    <div id="paso-eleccion" class="eleccion">
+      <button data-entrar="jefe"><span>👑</span><div>Soy el jefe<small>Entro con mi contraseña</small></div></button>
+      <button data-entrar="equipo"><span>🧑‍🔧</span><div>Soy del equipo<small>Entro con mi código de 6 cifras</small></div></button>
+      <a class="ver-demo" href="?demo&amp;visita">👀 Ver una demostración (5 minutos, datos inventados)</a>
+    </div>
+    <form id="paso-clave" class="oculto">
+      <label class="campo"><b id="clave-etiqueta">Contraseña</b><input id="clave" type="password" autocomplete="current-password"></label>
+      <label class="recordar"><input type="checkbox" id="recordar" checked> Recordarme en este aparato</label>
+      <button class="principal ancho" type="submit">Entrar</button>
+      <button class="enlace" type="button" id="volver-eleccion">← Volver</button>
+      <div class="error" id="error-entrada"></div>
+    </form>
+  </div>
+</section>
+
+<!-- Jefe -->
+<section id="jefe" class="app oculto">
+  <nav class="menu" id="menu"></nav>
+  <main id="contenido"></main>
+  <button class="rapido" id="rapido" title="Apuntar rápido" aria-label="Apuntar rápido">＋</button>
+</section>
+
+<!-- Equipo -->
+<section id="equipo" class="equipo oculto"></section>
+
+<script>// Google "de mentira" para el modo de prueba de la web (?demo).
+// construir.py lo junta con Codigo.gs y salen en web/demo.js: así la prueba usa EL MISMO cerebro
+// que Google, pero guardando en la memoria del navegador (al recargar, vuelve a empezar).
+// Los datos de ejemplo son inventados: esta web es pública y no debe llevar nada real.
+(function () {
+  function hojaFalsa(nombre) {
+    const filas = [];
+    const h = {
+      nombre: nombre,
+      setName: function (n) { h.nombre = n; return h; },
+      getDataRange: function () { return { getValues: function () { return filas.map(function (f) { return f.slice(); }); } }; },
+      getLastRow: function () { return filas.length; },
+      appendRow: function (f) { filas.push(f.slice()); },
+      setFrozenRows: function () {},
+      getRange: function (fila, col, nf, nc) {
+        return {
+          setValues: function (v) { v.forEach(function (f, i) { filas[fila - 1 + i] = f.slice(); }); return { setFontWeight: function () {} }; },
+          setValue: function (v) { filas[fila - 1][col - 1] = v; },
+          getValues: function () { return filas.slice(fila - 1, fila - 1 + (nf || 1)).map(function (f) { return f.slice(col - 1, col - 1 + (nc || 1)); }); }
+        };
+      }
+    };
+    return h;
+  }
+  let libro = null;
+  const props = { CLAVE: 'demo' }, cache = {};
+  const encuesta = hojaFalsa('respuestas');
+  encuesta.appendRow(['Marca temporal']);
+  for (let i = 0; i < 8; i++) encuesta.appendRow(['fila ' + i]);
+  // Huella sencilla (en Google es SHA-256; aquí basta con que sea siempre la misma)
+  function huellaDemo(t) { let h = 2166136261; for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); } return [h & 255, (h >> 8) & 255, (h >> 16) & 255, (h >>> 24)]; }
+
+  const google = {
+    SpreadsheetApp: {
+      create: function () {
+        const hojas = [hojaFalsa('Hoja 1')];
+        libro = { getId: function () { return 'DEMO'; }, getUrl: function () { return '#'; }, getSheets: function () { return hojas; },
+          insertSheet: function (n) { const x = hojaFalsa(n); hojas.push(x); return x; },
+          getSheetByName: function (n) { return hojas.find(function (x) { return x.nombre === n; }) || null; } };
+        return libro;
+      },
+      openById: function (id) {
+        if (id === 'DEMO') return libro;
+        if (id === 'ENCUESTA-DEMO') return { getSheets: function () { return [encuesta]; } };
+        throw new Error('sin permiso');
+      }
+    },
+    PropertiesService: { getScriptProperties: function () { return { getProperty: function (k) { return props[k] || null; }, setProperty: function (k, v) { props[k] = v; } }; } },
+    CacheService: { getScriptCache: function () { return { get: function (k) { return cache[k] || null; }, put: function (k, v) { cache[k] = v; } }; } },
+    LockService: { getScriptLock: function () { return { waitLock: function () {}, releaseLock: function () {} }; } },
+    ContentService: { MimeType: { JSON: 'j' }, createTextOutput: function (t) { return { setMimeType: function () { return JSON.parse(t); } }; } },
+    HtmlService: { createHtmlOutput: function (h) { return h; } },
+    Session: { getScriptTimeZone: function () { return 'Atlantic/Canary'; } },
+    Logger: { log: function () {} },
+    Utilities: {
+      sleep: function () {},
+      formatDate: function (d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); },
+      DigestAlgorithm: { SHA_256: 1 },
+      computeDigest: function (a, t) { return huellaDemo(t); }
+    }
+  };
+
+  // Aquí construir.py mete el cerebro (Codigo.gs) tal cual.
+  const cerebro = function (SpreadsheetApp, PropertiesService, CacheService, LockService, ContentService, HtmlService, Session, Logger, Utilities) {
+// 🧭 Centro de mando (20/10/2026)
+// El "cerebro" de la web del centro de mando. Guarda todo en una hoja de Google
+// ("Centro de mando · datos") que se crea sola la primera vez.
+// Dos puertas:
+//   - el JEFE (Emmanuel) entra con su contraseña: ve y cambia todo;
+//   - cada persona del EQUIPO entra con su código: solo ve SUS tareas y puede marcarlas hechas.
+// Nunca se borra nada: lo quitado se marca en la columna "quitado" y se puede recuperar.
+
+// La pantalla vive en GitHub Pages (WEB). Esta dirección de Google no enseña datos.
+const WEB = 'https://manuromher21canario-sudo.github.io/centro-mando/';
+const MAX_FALLOS = 10;          // intentos con contraseña o código malos antes de bloquear
+const BLOQUEO_SEGUNDOS = 900;   // 15 minutos
+
+// Cada pestaña de la hoja: sus columnas y qué se puede escribir en cada una.
+// tipo: texto (con largo máximo), num, opcion (de una lista), fecha (la pone el código).
+const TABLAS = {
+  Tareas: {
+    titulo: { tipo: 'texto', max: 120, obligatorio: true },
+    porque: { tipo: 'texto', max: 600 },
+    como: { tipo: 'texto', max: 1500 },
+    para: { tipo: 'texto', max: 40 },            // id de la persona del equipo, o "jefe"
+    idea: { tipo: 'texto', max: 60 },
+    prioridad: { tipo: 'opcion', opciones: ['principal', 'secundaria', 'terciaria'] },
+    estado: { tipo: 'opcion', opciones: ['pendiente', 'en curso', 'hecha'] },
+    para_cuando: { tipo: 'texto', max: 10 },     // aaaa-mm-dd
+    hecha_el: { tipo: 'fecha' },
+    comentario: { tipo: 'texto', max: 1000 }     // lo que cuenta quien la hace
+  },
+  Equipo: {
+    nombre: { tipo: 'texto', max: 40, obligatorio: true },
+    rol: { tipo: 'texto', max: 80 },
+    huella: { tipo: 'interno' },                 // huella del código (el código no se guarda)
+    ultima_vez: { tipo: 'fecha' }
+  },
+  Dinero: {
+    tipo: { tipo: 'opcion', opciones: ['ingreso', 'gasto'], obligatorio: true },
+    concepto: { tipo: 'texto', max: 80, obligatorio: true },
+    categoria: { tipo: 'texto', max: 40 },
+    importe: { tipo: 'num', min: 0.01, max: 100000, obligatorio: true },
+    idea: { tipo: 'texto', max: 60 },
+    dia: { tipo: 'texto', max: 10 }              // aaaa-mm-dd (si no, el de hoy)
+  },
+  Clientes: {
+    nombre: { tipo: 'texto', max: 60, obligatorio: true },
+    negocio: { tipo: 'texto', max: 80 },
+    clase: { tipo: 'opcion', opciones: ['servicio', 'app'], obligatorio: true },
+    que: { tipo: 'texto', max: 80 },             // qué servicio o qué app
+    estado: { tipo: 'opcion', opciones: ['posible', 'hablando', 'cliente', 'ya no'] },
+    contacto: { tipo: 'texto', max: 80 },        // por dónde se habla (WhatsApp, en persona…)
+    importe: { tipo: 'num', min: 0, max: 100000 },
+    notas: { tipo: 'texto', max: 1000 }
+  },
+  Ideas: {
+    nombre: { tipo: 'texto', max: 60, obligatorio: true },
+    paso: { tipo: 'opcion', opciones: ['idea', 'lienzo', 'marca', 'prototipo', 'presentación', 'probando con clientes', 'vendiendo', 'en pausa', 'descartada'] },
+    siguiente: { tipo: 'texto', max: 200 },
+    enlace: { tipo: 'texto', max: 300 },
+    notas: { tipo: 'texto', max: 1000 }
+  },
+  Talleres: {
+    nombre: { tipo: 'texto', max: 60, obligatorio: true },
+    estado: { tipo: 'opcion', opciones: ['en marcha', 'en pausa', 'terminado'] },
+    hechas: { tipo: 'num', min: 0, max: 999 },
+    total: { tipo: 'num', min: 0, max: 999 },
+    enlace: { tipo: 'texto', max: 300 },
+    notas: { tipo: 'texto', max: 1000 }
+  },
+  Encuestas: {
+    nombre: { tipo: 'texto', max: 60, obligatorio: true },
+    idea: { tipo: 'texto', max: 60 },
+    enlace: { tipo: 'texto', max: 300 },         // el que se reparte (forms.gle/…)
+    hoja: { tipo: 'texto', max: 100 },           // ID de la hoja de respuestas (para contarlas)
+    meta: { tipo: 'num', min: 0, max: 10000 }
+  }
+};
+const COMUNES = ['id', 'creado', 'quitado'];
+const columnas_ = (tabla) => COMUNES.concat(Object.keys(TABLAS[tabla]));
+
+function doGet() {
+  return HtmlService.createHtmlOutput('<p style="font-family:sans-serif">El centro de mando está en <a href="' + WEB + '" target="_top">' + WEB + '</a></p>');
+}
+
+function doPost(e) {
+  let cuerpo = {};
+  try { cuerpo = JSON.parse((e && e.postData && e.postData.contents) || '{}'); } catch (err) { return json_({ ok: false, error: 'peticion' }); }
+  const cache = CacheService.getScriptCache();
+  const fallos = Number(cache.get('fallos') || 0);
+  if (fallos >= MAX_FALLOS) return json_({ ok: false, error: 'bloqueado' });
+  const fallo = (error) => {
+    cache.put('fallos', String(fallos + 1), BLOQUEO_SEGUNDOS);
+    Utilities.sleep(1000);  // frena a quien pruebe contraseñas una tras otra
+    return json_({ ok: false, error: error });
+  };
+  try {
+    if (cuerpo.codigo !== undefined) {
+      const persona = personaDelCodigo_(String(cuerpo.codigo));
+      if (!persona) return fallo('codigo');
+      return json_(puertaEquipo_(persona, cuerpo));
+    }
+    // La contraseña está en Configuración del proyecto > Propiedades del script > CLAVE
+    // (la pone Emmanuel; no está en el código).
+    const clave = PropertiesService.getScriptProperties().getProperty('CLAVE');
+    if (!clave) return json_({ ok: false, error: 'sin-clave' });
+    if (String(cuerpo.clave || '') !== clave) return fallo('clave');
+    return json_(puertaJefe_(cuerpo));
+  } catch (err) {
+    return json_({ ok: false, error: 'interno', detalle: String(err && err.message || err).slice(0, 200) });
+  }
+}
+
+// ---------- Jefe ----------
+function puertaJefe_(c) {
+  let extra = {};
+  if (c.accion === 'guardar') {
+    const r = conCerrojo_(() => guardar_(c.tabla, c.id, c.campos || {}));
+    if (r.error) return { ok: false, error: r.error };
+    extra = { id: r.id };
+    if (c.tabla === 'Equipo' && !c.id) extra.codigo = darCodigo_(r.id);
+  } else if (c.accion === 'quitar' || c.accion === 'recuperar') {
+    const r = conCerrojo_(() => marcarQuitado_(c.tabla, c.id, c.accion === 'quitar'));
+    if (r.error) return { ok: false, error: r.error };
+  } else if (c.accion === 'codigo-nuevo') {
+    // Si alguien pierde su código, se le da otro (el viejo deja de valer).
+    if (!buscarFila_('Equipo', c.id)) return { ok: false, error: 'no-existe' };
+    extra = { codigo: conCerrojo_(() => darCodigo_(c.id)) };
+  } else if (c.accion === 'correo') {
+    const correo = String(c.correo || '').trim().slice(0, 100);
+    if (correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) return { ok: false, error: 'correo' };
+    PropertiesService.getScriptProperties().setProperty('CORREO', correo);
+  } else if (c.accion === 'aviso') {
+    // Un aviso fijo que el equipo ve arriba al entrar (vacío = sin aviso)
+    const texto = String(c.texto || '').trim().slice(0, 500).replace(/^[=+\-@]+/, '');
+    PropertiesService.getScriptProperties().setProperty('AVISO_EQUIPO', texto);
+  } else if (c.accion && c.accion !== 'datos') {
+    return { ok: false, error: 'accion' };
+  }
+  const datos = {};
+  Object.keys(TABLAS).forEach((t) => { datos[t] = leer_(t).map(sinInterno_); });
+  datos.Encuestas.forEach((x) => { x.respuestas = contarRespuestas_(x.hoja); });
+  return Object.assign({ ok: true, quien: 'jefe', datos: datos, aviso: aviso_(), correo: correoJefe_(), ahora: Date.now() }, extra);
+}
+
+// ---------- Equipo ----------
+function puertaEquipo_(persona, c) {
+  if (c.accion === 'hecha' || c.accion === 'deshacer' || c.accion === 'comentar' || c.accion === 'empezar') {
+    const tarea = leer_('Tareas').find((t) => t.id === c.id && t.para === persona.id && !t.quitado);
+    if (!tarea) return { ok: false, error: 'no-existe' };
+    const campos = {};
+    if (c.accion === 'hecha') { campos.estado = 'hecha'; campos.hecha_el = new Date(); }
+    if (c.accion === 'deshacer') { campos.estado = 'pendiente'; campos.hecha_el = ''; }
+    if (c.accion === 'empezar') campos.estado = 'en curso';
+    if (c.comentario !== undefined) campos.comentario = c.comentario;
+    const r = conCerrojo_(() => guardar_('Tareas', c.id, campos, true));
+    if (r.error) return { ok: false, error: r.error };
+    if (c.accion === 'hecha') {
+      mandarCorreo_('✅ ' + persona.nombre + ' ha terminado: ' + tarea.titulo,
+        persona.nombre + ' ha marcado como hecha la tarea «' + tarea.titulo + '».\n\n' +
+        (c.comentario ? 'Lo que ha contado:\n«' + String(c.comentario).slice(0, 1000) + '»\n\n' : 'No ha dejado comentario.\n\n') + 'Centro de mando: ' + WEB);
+    }
+  } else if (c.accion && c.accion !== 'datos') {
+    return { ok: false, error: 'accion' };
+  }
+  conCerrojo_(() => guardar_('Equipo', persona.id, { ultima_vez: new Date() }, true));
+  const mias = leer_('Tareas').filter((t) => t.para === persona.id && !t.quitado)
+    .map((t) => ({ id: t.id, titulo: t.titulo, porque: t.porque, como: t.como, idea: t.idea, prioridad: t.prioridad,
+                   estado: t.estado || 'pendiente', para_cuando: t.para_cuando, hecha_el: t.hecha_el, comentario: t.comentario }));
+  return { ok: true, quien: 'equipo', nombre: persona.nombre, tareas: mias, aviso: aviso_(), ahora: Date.now() };
+}
+
+// ---------- Correos ----------
+// A quién le llegan los avisos: el correo puesto en el centro de mando o, si no hay, el de la cuenta de Google.
+function correoJefe_() {
+  const puesto = PropertiesService.getScriptProperties().getProperty('CORREO');
+  if (puesto) return puesto;
+  try { return Session.getEffectiveUser().getEmail() || ''; } catch (e) { return ''; }
+}
+
+// Nunca rompe nada: si el correo falla (sin permiso, límite diario…), la tarea se guarda igual.
+function mandarCorreo_(asunto, texto) {
+  const a = correoJefe_();
+  if (!a) return false;
+  try { MailApp.sendEmail(a, asunto, texto, { name: 'Centro de mando' }); return true; } catch (e) { return false; }
+}
+
+// Cada lunes por la mañana (disparador que crea instalar): resumen de la semana.
+function resumenSemanal() {
+  const semana = Date.now() - 7 * 24 * 3600 * 1000;
+  const tareas = leer_('Tareas').filter((t) => !t.quitado);
+  const gente = {};
+  leer_('Equipo').forEach((p) => { gente[p.id] = p.nombre; });
+  const quien = (id) => id === 'jefe' || !id ? 'tú' : (gente[id] || '¿?');
+  const hechas = tareas.filter((t) => t.estado === 'hecha' && t.hecha_el >= semana);
+  const pendientes = tareas.filter((t) => t.estado !== 'hecha');
+  const hoy = hoyTexto_();
+  const atrasadas = pendientes.filter((t) => t.para_cuando && String(t.para_cuando) < hoy);
+  let gano = 0, gasto = 0;
+  leer_('Dinero').filter((m) => !m.quitado && m.creado >= semana).forEach((m) => { if (m.tipo === 'gasto') gasto += Number(m.importe) || 0; else gano += Number(m.importe) || 0; });
+  const respuestas = leer_('Encuestas').filter((e) => !e.quitado).map((e) => '  · ' + e.nombre + ': ' + (contarRespuestas_(e.hoja) === null ? '¿?' : contarRespuestas_(e.hoja)) + (e.meta ? ' de ' + e.meta : ''));
+  const orden = { principal: 0, secundaria: 1, terciaria: 2 };
+  pendientes.sort((a, b) => (orden[a.prioridad] === undefined ? 3 : orden[a.prioridad]) - (orden[b.prioridad] === undefined ? 3 : orden[b.prioridad]));
+  const texto = [
+    '🧭 Tu semana en el centro de mando', '',
+    '✅ Hechas esta semana: ' + hechas.length, ...hechas.map((t) => '  · ' + t.titulo + ' (' + quien(t.para) + ')'), '',
+    '📌 Pendientes: ' + pendientes.length + (atrasadas.length ? ' (' + atrasadas.length + ' atrasadas)' : ''),
+    ...pendientes.slice(0, 8).map((t) => '  · ' + (t.prioridad ? '[' + t.prioridad + '] ' : '') + t.titulo + ' (' + quien(t.para) + ')'), '',
+    '💶 Esta semana: ganado ' + Math.round(gano * 100) / 100 + ' €, gastado ' + Math.round(gasto * 100) / 100 + ' €', '',
+    '📋 Encuestas:', ...respuestas, '', WEB
+  ].join('\n');
+  return mandarCorreo_('🧭 Tu semana: ' + hechas.length + ' hechas, ' + pendientes.length + ' pendientes', texto);
+}
+
+function crearDisparadorSemanal_() {
+  ScriptApp.getProjectTriggers().forEach((t) => { if (t.getHandlerFunction() === 'resumenSemanal') ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger('resumenSemanal').timeBased().onWeekDay(ScriptApp.WeekDay.MONDAY).atHour(8).create();
+}
+
+function aviso_() {
+  return PropertiesService.getScriptProperties().getProperty('AVISO_EQUIPO') || '';
+}
+
+// ---------- La hoja ----------
+function libro_() {
+  const props = PropertiesService.getScriptProperties();
+  let id = props.getProperty('HOJA');
+  if (id) return SpreadsheetApp.openById(id);
+  const ss = SpreadsheetApp.create('Centro de mando · datos');
+  Object.keys(TABLAS).forEach((t, i) => {
+    const hoja = i === 0 ? ss.getSheets()[0].setName(t) : ss.insertSheet(t);
+    const cols = columnas_(t);
+    hoja.getRange(1, 1, 1, cols.length).setValues([cols]).setFontWeight('bold');
+    hoja.setFrozenRows(1);
+  });
+  props.setProperty('HOJA', ss.getId());
+  return ss;
+}
+
+function hoja_(tabla) {
+  if (!TABLAS[tabla]) throw new Error('tabla');
+  return libro_().getSheetByName(tabla);
+}
+
+function leer_(tabla) {
+  const valores = hoja_(tabla).getDataRange().getValues();
+  const cab = valores[0] || [];
+  return valores.slice(1).filter((f) => f[0]).map((f) => {
+    const o = {};
+    cab.forEach((k, i) => { o[k] = f[i] instanceof Date ? f[i].getTime() : f[i]; });
+    o.id = String(o.id);
+    o.quitado = String(o.quitado) === 'sí';
+    return o;
+  });
+}
+
+function sinInterno_(o) {
+  const copia = Object.assign({}, o);
+  delete copia.huella;
+  return copia;
+}
+
+function buscarFila_(tabla, id) {
+  if (!id) return 0;
+  const ids = hoja_(tabla).getRange(1, 1, Math.max(hoja_(tabla).getLastRow(), 1), 1).getValues();
+  for (let i = 1; i < ids.length; i++) if (String(ids[i][0]) === String(id)) return i + 1;
+  return 0;
+}
+
+// Comprueba y limpia lo que llega de la web. Devuelve { campos } o { error }.
+function limpiar_(tabla, campos, interno) {
+  const esquema = TABLAS[tabla];
+  const limpio = {};
+  for (const k of Object.keys(campos)) {
+    const regla = esquema[k];
+    if (!regla) return { error: 'campo:' + k };
+    if ((regla.tipo === 'interno' || regla.tipo === 'fecha') && !interno) return { error: 'campo:' + k };
+    let v = campos[k];
+    if (regla.tipo === 'texto') {
+      // los textos no pueden empezar por "=", "+", "-" o "@": Sheets los tomaría por fórmulas
+      v = String(v === null || v === undefined ? '' : v).trim().slice(0, regla.max).replace(/^[=+\-@]+/, '');
+    } else if (regla.tipo === 'num') {
+      if (v === '' || v === null || v === undefined) { v = ''; } else {
+        v = Math.round(Number(String(v).replace(',', '.')) * 100) / 100;
+        if (!(v >= regla.min && v <= regla.max)) return { error: 'numero:' + k };
+      }
+    } else if (regla.tipo === 'opcion') {
+      v = String(v || '');
+      if (v && regla.opciones.indexOf(v) === -1) return { error: 'opcion:' + k };
+    }
+    limpio[k] = v;
+  }
+  return { campos: limpio };
+}
+
+function guardar_(tabla, id, campos, interno) {
+  if (!TABLAS[tabla]) return { error: 'tabla' };
+  const r = limpiar_(tabla, campos, interno);
+  if (r.error) return r;
+  const hoja = hoja_(tabla);
+  const cols = columnas_(tabla);
+  let fila = buscarFila_(tabla, id);
+  if (id && !fila) return { error: 'no-existe' };
+  if (!fila) {
+    const faltan = Object.keys(TABLAS[tabla]).filter((k) => TABLAS[tabla][k].obligatorio && (r.campos[k] === undefined || r.campos[k] === ''));
+    if (faltan.length) return { error: 'falta:' + faltan.join(',') };
+    id = tabla.slice(0, 1).toLowerCase() + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36);
+    const nueva = cols.map((k) => k === 'id' ? id : k === 'creado' ? new Date() : k === 'quitado' ? '' : (r.campos[k] !== undefined ? r.campos[k] : ''));
+    if (tabla === 'Dinero' && !r.campos.dia) nueva[cols.indexOf('dia')] = hoyTexto_();
+    hoja.appendRow(nueva);
+    return { id: id };
+  }
+  Object.keys(r.campos).forEach((k) => {
+    if (TABLAS[tabla][k].obligatorio && r.campos[k] === '') return;  // un dato obligatorio no se vacía
+    hoja.getRange(fila, cols.indexOf(k) + 1).setValue(r.campos[k]);
+  });
+  return { id: id };
+}
+
+function marcarQuitado_(tabla, id, quitar) {
+  if (!TABLAS[tabla]) return { error: 'tabla' };
+  const fila = buscarFila_(tabla, id);
+  if (!fila) return { error: 'no-existe' };
+  hoja_(tabla).getRange(fila, columnas_(tabla).indexOf('quitado') + 1).setValue(quitar ? 'sí' : '');
+  return { id: id };
+}
+
+function conCerrojo_(fn) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try { return fn(); } finally { lock.releaseLock(); }
+}
+
+function hoyTexto_() {
+  return Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
+}
+
+// ---------- Códigos del equipo ----------
+// El código (6 cifras) solo se enseña una vez al jefe; en la hoja se guarda su huella.
+function huella_(texto) {
+  const bytes = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, 'centro-mando:' + texto);
+  return bytes.map((b) => ('0' + (b & 255).toString(16)).slice(-2)).join('');
+}
+
+function darCodigo_(id) {
+  const usadas = leer_('Equipo').map((p) => p.huella);
+  let codigo;
+  do { codigo = String(Math.floor(100000 + Math.random() * 900000)); } while (usadas.indexOf(huella_(codigo)) !== -1);
+  guardar_('Equipo', id, { huella: huella_(codigo) }, true);
+  return codigo;
+}
+
+function personaDelCodigo_(codigo) {
+  if (!/^\d{6}$/.test(codigo)) return null;
+  const h = huella_(codigo);
+  return leer_('Equipo').find((p) => p.huella === h && !p.quitado) || null;
+}
+
+// ---------- Encuestas ----------
+// Cuenta las filas de la hoja de respuestas (menos la de títulos). Si no se puede abrir, null.
+function contarRespuestas_(idHoja) {
+  if (!idHoja) return null;
+  try {
+    const hoja = SpreadsheetApp.openById(String(idHoja)).getSheets()[0];
+    return Math.max(hoja.getLastRow() - 1, 0);
+  } catch (e) { return null; }
+}
+
+function json_(objeto) {
+  return ContentService.createTextOutput(JSON.stringify(objeto)).setMimeType(ContentService.MimeType.JSON);
+}
+
+// Para ejecutar UNA vez desde el editor (botón ▶): pide los permisos y crea la hoja.
+function instalar() {
+  const ss = libro_();
+  const cargado = typeof cargarIniciales_ === 'function' && conCerrojo_(cargarIniciales_);
+  crearDisparadorSemanal_();
+  Logger.log('Hoja lista: ' + ss.getUrl() + (cargado ? ' (con lo que ya teníamos)' : ''));
+}
+
+    return { doPost: doPost, guardar_: guardar_, huella_: huella_ };
+  };
+  const c = cerebro(google.SpreadsheetApp, google.PropertiesService, google.CacheService, google.LockService, google.ContentService,
+    google.HtmlService, google.Session, google.Logger, google.Utilities);
+
+  let sembrado = false;
+  function sembrar() {
+    sembrado = true;
+    const jefe = function (x) { return c.doPost({ postData: { contents: JSON.stringify(Object.assign({ clave: 'demo' }, x)) } }); };
+    const g = function (tabla, campos) { return jefe({ accion: 'guardar', tabla: tabla, campos: campos }).id; };
+    const amigo = g('Equipo', { nombre: 'Álex', rol: 'Probar en el móvil' });
+    c.guardar_('Equipo', amigo, { huella: c.huella_('123456') }, true);   // en la prueba, su código es 123456
+    g('Ideas', { nombre: 'App de cuentas para manitas', paso: 'presentación', siguiente: 'Enseñársela a 3 personas' });
+    g('Ideas', { nombre: 'Llamada de los buenos días', paso: 'prototipo', siguiente: 'Ponerle nombre' });
+    g('Ideas', { nombre: 'Inventario de piezas', paso: 'prototipo', siguiente: 'Esperar a saber qué le molesta a la clienta' });
+    g('Ideas', { nombre: 'Tablón de la clase', paso: 'idea' });
+    g('Tareas', { titulo: 'Probar el prototipo en tu móvil', para: amigo, prioridad: 'principal',
+      porque: 'Quiero saber si alguien que no lo ha visto nunca lo entiende sin ayuda.',
+      como: '1. Abre el enlace que te mandé.\n2. Intenta apuntar un trabajo sin que nadie te explique.\n3. Apunta lo que no entiendas.' });
+    g('Tareas', { titulo: 'Repartir la encuesta en 2 grupos', para: amigo, prioridad: 'secundaria', porque: 'Necesitamos 20 respuestas para decidir.',
+      como: 'Mándala a un grupo de clase y a uno de la familia con el mensaje de «Mandar».' });
+    g('Tareas', { titulo: 'Mirar si el nombre está libre en la oficina de marcas', para: 'jefe', prioridad: 'principal' });
+    g('Tareas', { titulo: 'Escribir a la tienda de piezas', para: 'jefe', prioridad: 'secundaria' });
+    g('Tareas', { titulo: 'Buscar 3 ideas nuevas', para: 'jefe', prioridad: 'terciaria' });
+    g('Clientes', { nombre: 'Rosa', negocio: 'Tienda de piezas', clase: 'servicio', que: 'Inventario', estado: 'hablando', contacto: 'WhatsApp' });
+    g('Clientes', { nombre: 'Peluquería Lola', negocio: 'Peluquería', clase: 'servicio', que: 'Caja del día', estado: 'cliente', importe: 75 });
+    g('Clientes', { nombre: 'Juan', negocio: 'Trabajos en casas', clase: 'app', que: 'App de cuentas', estado: 'posible' });
+    g('Dinero', { tipo: 'ingreso', concepto: 'Caja del día (Peluquería Lola)', categoria: 'Servicios', importe: 75 });
+    g('Dinero', { tipo: 'gasto', concepto: 'Cartulinas para carteles', categoria: 'Material', importe: 4.5 });
+    g('Encuestas', { nombre: 'Encuesta de manitas', idea: 'App de cuentas para manitas', enlace: 'https://forms.gle/ejemplo', hoja: 'ENCUESTA-DEMO', meta: 20 });
+    g('Talleres', { nombre: 'Centro de mando', estado: 'en marcha', hechas: 3, total: 13 });
+    g('Talleres', { nombre: 'Inventario de piezas', estado: 'en pausa', hechas: 3, total: 17 });
+  }
+  window.cerebroDemo = function (cuerpo) {
+    if (!sembrado) sembrar();
+    return c.doPost({ postData: { contents: JSON.stringify(cuerpo) } });
+  };
+})();
+</script>
+<script>
+// Dirección del cerebro en Google (se rellena al publicar). Con ?demo se usa un cerebro de mentira.
+const API = "https://script.google.com/macros/s/AKfycbz6_iBhLxpc2W-Jt2hrWlQkLzi3pKTuRQ227mX7cgHMrDPHpN076yup-2Wu2b1X3HtT/exec";
+const MODO_DEMO = true || /[?&]demo\b/.test(location.search) || API.indexOf("PEGAR") === 0;
+const GUARDADA = "centro_mando_sesion";
+
+const $ = (s, el) => (el || document).querySelector(s);
+const esc = (t) => String(t === null || t === undefined ? "" : t).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const euros = (n) => (Math.round((Number(n) || 0) * 100) / 100).toLocaleString("es-ES", { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + " €";
+const hoyTexto = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+const fechaCorta = (ms) => { if (!ms) return ""; const d = new Date(ms); return d.toLocaleDateString("es-ES", { day: "numeric", month: "short" }); };
+const haceCuanto = (ms) => {
+  if (!ms) return "nunca";
+  const min = Math.round((Date.now() - ms) / 60000);
+  if (min < 2) return "ahora mismo"; if (min < 60) return "hace " + min + " min";
+  const h = Math.round(min / 60); if (h < 24) return "hace " + h + " h";
+  const d = Math.round(h / 24); return d === 1 ? "ayer" : "hace " + d + " días";
+};
+const leerGuardada = () => { try { return JSON.parse(localStorage.getItem(GUARDADA) || "null"); } catch (e) { return null; } };
+const guardarSesion = (s) => { try { s ? localStorage.setItem(GUARDADA, JSON.stringify(s)) : localStorage.removeItem(GUARDADA); } catch (e) {} };
+
+// ---------- Hablar con el cerebro ----------
+let sesion = null;   // { como: "jefe"|"equipo", secreto }
+function llamar(extra) {
+  const cuerpo = Object.assign(sesion.como === "jefe" ? { clave: sesion.secreto } : { codigo: sesion.secreto }, extra || {});
+  if (MODO_DEMO) return Promise.resolve(window.cerebroDemo(cuerpo));
+  return fetch(API, { method: "POST", body: JSON.stringify(cuerpo) }).then((r) => r.json());
+}
+const ERRORES = {
+  clave: "Esa contraseña no es.", codigo: "Ese código no es. Pídele uno nuevo a Emmanuel.",
+  bloqueado: "Demasiados intentos. Espera 15 minutos.", "sin-clave": "Todavía no hay contraseña puesta en Google (mira la guía).",
+  red: "No hay conexión con Google. Prueba otra vez.", correo: "Ese correo no parece bien escrito.", "no-existe": "Eso ya no existe (¿lo quitaron?).", accion: "Eso no se puede hacer desde aquí."
+};
+const textoError = (e) => {
+  e = String(e || "");
+  if (ERRORES[e]) return ERRORES[e];
+  if (e.indexOf("falta:") === 0) return "Falta rellenar: " + e.slice(6).split(",").map((k) => (ETIQUETAS[k] || k).toLowerCase()).join(", ") + ".";
+  if (e.indexOf("numero:") === 0) return "Revisa el número de «" + (ETIQUETAS[e.slice(7)] || e.slice(7)) + "».";
+  return "Algo ha fallado (" + e + ").";
+};
+
+// ---------- Entrada ----------
+let entrandoComo = "jefe";
+document.querySelectorAll("[data-entrar]").forEach((b) => b.onclick = () => {
+  entrandoComo = b.dataset.entrar;
+  $("#paso-eleccion").classList.add("oculto"); $("#paso-clave").classList.remove("oculto");
+  const jefe = entrandoComo === "jefe";
+  $("#clave-etiqueta").textContent = jefe ? "Contraseña" : "Tu código (6 cifras)";
+  $("#clave").type = jefe ? "password" : "text";
+  $("#clave").inputMode = jefe ? "text" : "numeric";
+  $("#clave").autocomplete = jefe ? "current-password" : "one-time-code";
+  $("#entrada-texto").textContent = jefe ? "Hola, jefe 👑" : "Hola 👋 Escribe el código que te dio Emmanuel.";
+  $("#error-entrada").textContent = ""; $("#clave").value = ""; $("#clave").focus();
+});
+$("#volver-eleccion").onclick = () => {
+  $("#paso-clave").classList.add("oculto"); $("#paso-eleccion").classList.remove("oculto"); $("#entrada-texto").textContent = "¿Quién eres?";
+};
+$("#paso-clave").onsubmit = (e) => {
+  e.preventDefault();
+  const secreto = $("#clave").value.trim();
+  if (!secreto) return;
+  sesion = { como: entrandoComo, secreto: secreto };
+  $("#paso-clave").classList.add("cargando");
+  llamar({}).then((r) => {
+    $("#paso-clave").classList.remove("cargando");
+    if (!r.ok) { $("#error-entrada").textContent = textoError(r.error); sesion = null; return; }
+    if ($("#recordar").checked) guardarSesion(sesion);
+    recibir(r);
+  }).catch(() => { $("#paso-clave").classList.remove("cargando"); $("#error-entrada").textContent = ERRORES.red; sesion = null; });
+};
+function salir() {
+  guardarSesion(null); sesion = null; datos = null; apartado = "inicio"; subpestana = {};
+  ["jefe", "equipo"].forEach((id) => $("#" + id).classList.add("oculto"));
+  $("#entrada").classList.remove("oculto"); $("#volver-eleccion").click();
+}
+function recibir(r) {
+  $("#entrada").classList.add("oculto");
+  if (r.quien === "jefe") { datos = r.datos; avisoEquipo = r.aviso || ""; correoAvisos = r.correo || ""; $("#jefe").classList.remove("oculto"); pintarJefe(); }
+  else { equipoDatos = r; $("#equipo").classList.remove("oculto"); pintarEquipo(); }
+}
+
+// ---------- Avisos con Deshacer ----------
+let temporizadorAviso;
+function avisar(texto, deshacer) {
+  const viejo = $(".aviso"); if (viejo) viejo.remove();
+  clearTimeout(temporizadorAviso);
+  const a = document.createElement("div");
+  a.className = "aviso";
+  a.innerHTML = "<span>" + esc(texto) + "</span>" + (deshacer ? "<button>↶ Deshacer</button>" : "");
+  document.body.appendChild(a);
+  if (deshacer) a.querySelector("button").onclick = () => { a.remove(); deshacer(); };
+  temporizadorAviso = setTimeout(() => a.remove(), deshacer ? 8000 : 3500);
+}
+
+// =====================================================================
+// JEFE
+// =====================================================================
+let datos = null, apartado = "inicio", subpestana = {}, avisoEquipo = "", correoAvisos = "";
+const APARTADOS = [
+  ["inicio", "🏠", "Inicio"], ["tareas", "✅", "Tareas"], ["equipo", "👥", "Equipo"], ["dinero", "💶", "Dinero"],
+  ["clientes", "🤝", "Clientes"], ["ideas", "💡", "Ideas"], ["encuestas", "📋", "Encuestas"], ["talleres", "🛠️", "Talleres"]
+];
+const ETIQUETAS = {
+  titulo: "Qué hay que hacer", porque: "Por qué (para que lo entienda)", como: "Cómo hacerlo (pasos)", para: "Para quién",
+  idea: "Idea", prioridad: "Prioridad", estado: "Estado", para_cuando: "Para cuándo", comentario: "Lo que ha contado",
+  nombre: "Nombre", rol: "En qué ayuda", tipo: "Tipo", concepto: "Concepto", categoria: "Categoría", importe: "Importe (€)",
+  dia: "Día", negocio: "Negocio", clase: "Clase", que: "Qué servicio o app", contacto: "Por dónde se habla", notas: "Notas",
+  paso: "En qué paso está", siguiente: "Siguiente paso", enlace: "Enlace", hechas: "Tareas hechas", total: "Tareas en total",
+  hoja: "ID de la hoja de respuestas", meta: "Respuestas que queremos"
+};
+const PASOS_IDEA = ["idea", "lienzo", "marca", "prototipo", "presentación", "probando con clientes", "vendiendo"];
+const CATEGORIAS = { ingreso: ["Servicios", "Apps", "Plantillas", "Otros ingresos"], gasto: ["Herramientas y web", "Material", "Publicidad", "Legal", "Otros gastos"] };
+
+// Formularios de cada tabla: [campo, tipo de casilla, opciones]
+function formulario(tabla) {
+  const gente = [["jefe", "Yo (jefe)"]].concat(vivos("Equipo").map((p) => [p.id, p.nombre]));
+  const ideas = [["", "—"]].concat(vivos("Ideas").map((i) => [i.nombre, i.nombre]));
+  return {
+    Tareas: [["titulo", "texto"], ["para", "lista", gente], ["prioridad", "lista", [["principal", "Principal"], ["secundaria", "Secundaria"], ["terciaria", "Terciaria"]]],
+             ["porque", "largo"], ["como", "largo"], ["idea", "lista", ideas], ["para_cuando", "fecha"]],
+    Equipo: [["nombre", "texto"], ["rol", "texto"]],
+    Dinero: [["tipo", "lista", [["ingreso", "💚 Ingreso (lo que gano)"], ["gasto", "🔻 Gasto (lo que pago)"]]], ["concepto", "texto"], ["importe", "numero"],
+             ["categoria", "lista", CATEGORIAS.ingreso.concat(CATEGORIAS.gasto).map((c) => [c, c])], ["idea", "lista", ideas], ["dia", "fecha"]],
+    Clientes: [["nombre", "texto"], ["negocio", "texto"], ["clase", "lista", [["servicio", "Servicio (lo hago yo)"], ["app", "App (la usa)"]]], ["que", "texto"],
+               ["estado", "lista", [["posible", "Posible"], ["hablando", "Hablando"], ["cliente", "Cliente"], ["ya no", "Ya no"]]], ["contacto", "texto"], ["importe", "numero"], ["notas", "largo"]],
+    Ideas: [["nombre", "texto"], ["paso", "lista", PASOS_IDEA.concat(["en pausa", "descartada"]).map((p) => [p, p[0].toUpperCase() + p.slice(1)])], ["siguiente", "texto"], ["enlace", "texto"], ["notas", "largo"]],
+    Talleres: [["nombre", "texto"], ["estado", "lista", [["en marcha", "En marcha"], ["en pausa", "En pausa"], ["terminado", "Terminado"]]], ["hechas", "numero"], ["total", "numero"], ["enlace", "texto"], ["notas", "largo"]],
+    Encuestas: [["nombre", "texto"], ["idea", "lista", ideas], ["enlace", "texto"], ["hoja", "texto"], ["meta", "numero"]]
+  }[tabla];
+}
+const vivos = (tabla) => (datos && datos[tabla] || []).filter((x) => !x.quitado);
+const quitados = (tabla) => (datos && datos[tabla] || []).filter((x) => x.quitado);
+const nombreDe = (id) => id === "jefe" ? "Yo" : ((datos.Equipo || []).find((p) => p.id === id) || {}).nombre || "Sin asignar";
+
+function pintarJefe() {
+  const pendientes = vivos("Tareas").filter((t) => t.estado !== "hecha").length;
+  $("#menu").innerHTML = '<div class="marca">🧭 Centro de mando<small>Emmanuel · jefe</small></div>' +
+    APARTADOS.map(([id, ico, nom]) => '<button data-ir="' + id + '" class="' + (apartado === id ? "activa" : "") + '">' + ico + " " + nom +
+      (id === "tareas" && pendientes ? '<span class="num">' + pendientes + "</span>" : "") + "</button>").join("") +
+    botonInstalar() + '<button class="salir" data-salir>🚪 Salir</button>';
+  const pintor = { inicio: pInicio, tareas: pTareas, equipo: pEquipo, dinero: pDinero, clientes: pClientes, ideas: pIdeas, encuestas: pEncuestas, talleres: pTalleres }[apartado];
+  $("#contenido").innerHTML = pintor();
+}
+$("#menu").onclick = (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.salir !== undefined) return salir();
+  if (b.dataset.instalar !== undefined) return instalarApp();
+  apartado = b.dataset.ir; pintarJefe(); window.scrollTo(0, 0);
+};
+
+const cabecera = (titulo, botones, sub) => '<div class="cabecera"><h1>' + titulo + '</h1><div class="derecha">' + (botones || "") + "</div></div>" + (sub ? '<p class="sub">' + sub + "</p>" : "");
+const botonNuevo = (tabla, texto, extra) => '<button class="principal" data-nuevo="' + tabla + '"' + (extra ? " data-extra='" + esc(JSON.stringify(extra)) + "'" : "") + ">＋ " + texto + "</button>";
+const botonesItem = (tabla, x, mas) => '<div class="acciones">' + (mas || "") + (x.quitado
+  ? '<button data-recuperar="' + tabla + '" data-id="' + x.id + '">↩ Recuperar</button>'
+  : '<button data-editar="' + tabla + '" data-id="' + x.id + '">✏️ Cambiar</button><button data-quitar="' + tabla + '" data-id="' + x.id + '">🗑 Quitar</button>') + "</div>";
+const bloqueQuitados = (tabla, pintar) => {
+  const q = quitados(tabla); if (!q.length) return "";
+  return '<details style="margin-top:18px"><summary class="enlace">Quitados (' + q.length + ") — se pueden recuperar</summary><div class=\"lista\" style=\"margin-top:8px\">" + q.map(pintar).join("") + "</div></details>";
+};
+
+// ---------- Dinero (cuentas) ----------
+function cuentas() {
+  const hoy = hoyTexto(), mes = hoy.slice(0, 7), anio = hoy.slice(0, 4);
+  const t = { hoy: { i: 0, g: 0 }, mes: { i: 0, g: 0 }, anio: { i: 0, g: 0 }, todo: { i: 0, g: 0 } };
+  vivos("Dinero").forEach((m) => {
+    const d = String(m.dia || ""), k = m.tipo === "gasto" ? "g" : "i", n = Number(m.importe) || 0;
+    t.todo[k] += n; if (d.slice(0, 4) === anio) t.anio[k] += n; if (d.slice(0, 7) === mes) t.mes[k] += n; if (d === hoy) t.hoy[k] += n;
+  });
+  return t;
+}
+const tresCifras = (c) => '<div class="tres"><div><span>Gano</span><b class="mas">' + euros(c.i) + '</b></div><div><span>Gasto</span><b class="menos">' + euros(c.g) +
+  '</b></div><div><span>Me queda</span><b class="' + (c.i - c.g >= 0 ? "mas" : "menos") + '">' + euros(c.i - c.g) + "</b></div></div>";
+
+// ---------- 🏠 Inicio ----------
+function pInicio() {
+  const tareas = vivos("Tareas"), pend = tareas.filter((t) => t.estado !== "hecha");
+  const orden = { principal: 0, secundaria: 1, terciaria: 2, "": 3 };
+  const mias = pend.filter((t) => t.para === "jefe" || !t.para).sort((a, b) => (orden[a.prioridad || ""] - orden[b.prioridad || ""]));
+  const delEquipo = pend.filter((t) => t.para && t.para !== "jefe");
+  const recienHechas = tareas.filter((t) => t.estado === "hecha" && t.para !== "jefe" && t.hecha_el).sort((a, b) => b.hecha_el - a.hecha_el).slice(0, 3);
+  const c = cuentas();
+  const cli = vivos("Clientes"), serv = cli.filter((x) => x.clase === "servicio"), apps = cli.filter((x) => x.clase === "app");
+  const deVerdad = (l) => l.filter((x) => x.estado === "cliente").length;
+  const enc = vivos("Encuestas"), resp = enc.reduce((s, e) => s + (Number(e.respuestas) || 0), 0), meta = enc.reduce((s, e) => s + (Number(e.meta) || 0), 0);
+  const talleres = vivos("Talleres").filter((t) => t.estado === "en marcha");
+  const ideasVivas = vivos("Ideas").filter((i) => i.paso !== "descartada" && i.paso !== "en pausa");
+  const equipo = vivos("Equipo");
+  const saludo = new Date().getHours() < 14 ? "Buenos días" : new Date().getHours() < 21 ? "Buenas tardes" : "Buenas noches";
+
+  const semana = pend.filter((t) => t.para_cuando && String(t.para_cuando) <= dentroDe(7)).sort((a, b) => String(a.para_cuando).localeCompare(String(b.para_cuando)));
+  return cabecera(saludo + ", jefe 👑", "", new Date().toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" })) +
+  '<div class="rejilla">' +
+    '<div class="tarjeta ancha"><h3>🎯 Te toca a ti</h3>' + (mias.length ? '<div class="lista">' + mias.slice(0, 5).map(itemTarea).join("") + "</div>" + (mias.length > 5 ? '<p>…y ' + (mias.length - 5) + " más en Tareas.</p>" : "")
+      : '<p>No tienes nada pendiente. ¡Bien! 🎉</p>') + "</div>" +
+    (semana.length ? '<div class="tarjeta ancha"><h3>📅 Esta semana' + (semana.some(atrasada) ? ' <span class="chip atrasada">' + semana.filter(atrasada).length + " atrasada" + (semana.filter(atrasada).length === 1 ? "" : "s") + "</span>" : "") +
+      '</h3><div class="lista">' + semana.map(itemTarea).join("") + "</div></div>" : "") +
+    '<div class="tarjeta clic" data-ir-a="dinero"><h3>💶 Dinero de este mes</h3>' + tresCifras(c.mes) + "<p>Desde el principio te quedan " + euros(c.todo.i - c.todo.g) + ".</p></div>" +
+    '<div class="tarjeta clic" data-ir-a="clientes"><h3>🤝 Clientes</h3><div class="grande">' + (deVerdad(serv) + deVerdad(apps)) + ' <small>de verdad</small></div><p>Servicios: ' + serv.length + " (" + deVerdad(serv) + " clientes) · Apps: " + apps.length + " (" + deVerdad(apps) + " clientes)<br>" +
+      cli.filter((x) => x.estado === "hablando").length + " con los que estás hablando.</p></div>" +
+    '<div class="tarjeta clic" data-ir-a="encuestas"><h3>📋 Encuestas</h3><div class="grande">' + resp + (meta ? " <small>de " + meta + " respuestas</small>" : " <small>respuestas</small>") + "</div>" +
+      (meta ? '<div class="barra"><div style="width:' + Math.min(100, Math.round(100 * resp / meta)) + '%"></div></div>' : "") + "<p>" + (resp === 0 ? "Aún ninguna: toca repartirlas." : enc.length + " encuestas.") + "</p></div>" +
+    '<div class="tarjeta clic" data-ir-a="equipo"><h3>👥 Equipo</h3><div class="grande">' + equipo.length + " <small>" + (equipo.length === 1 ? "persona" : "personas") + "</small></div><p>" +
+      (delEquipo.length ? delEquipo.length + " tareas suyas pendientes." : "Sin tareas pendientes.") +
+      (recienHechas.length ? "<br>Última hecha: «" + esc(recienHechas[0].titulo) + "» (" + esc(nombreDe(recienHechas[0].para)) + ")." : "") + "</p></div>" +
+    '<div class="tarjeta clic" data-ir-a="ideas"><h3>💡 Ideas</h3><div class="grande">' + ideasVivas.length + " <small>en marcha</small></div><p>" + esc(ideasVivas.slice(0, 3).map((i) => i.nombre).join(" · ")) + "</p></div>" +
+    '<div class="tarjeta clic" data-ir-a="talleres"><h3>🛠️ Talleres</h3><div class="grande">' + talleres.length + " <small>en marcha</small></div><p>" + esc(talleres.map((t) => t.nombre).join(" · ") || "Ninguno ahora.") + "</p></div>" +
+  "</div>";
+}
+$("#contenido").addEventListener("click", (e) => { const t = e.target.closest("[data-ir-a]"); if (t && !e.target.closest("button")) { apartado = t.dataset.irA; pintarJefe(); window.scrollTo(0, 0); } });
+
+// ---------- ✅ Tareas ----------
+const atrasada = (t) => t.estado !== "hecha" && t.para_cuando && String(t.para_cuando) < hoyTexto();
+const dentroDe = (dias) => { const d = new Date(); d.setDate(d.getDate() + dias); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+function itemTarea(t) {
+  const hecha = t.estado === "hecha";
+  const detalle = [nombreDe(t.para), t.idea, t.para_cuando ? "para el " + fechaCorta(new Date(t.para_cuando + "T12:00").getTime()) : "", hecha && t.hecha_el ? "hecha " + haceCuanto(t.hecha_el) : ""].filter(Boolean).join(" · ");
+  return '<div class="item' + (t.quitado ? " quitado" : "") + '">' +
+    (t.quitado ? "" : '<button class="marca-check' + (hecha ? " si" : "") + '" data-marcar="' + t.id + '" title="' + (hecha ? "Marcar como pendiente" : "Marcar como hecha") + '" aria-label="Hecha">' + (hecha ? "✓" : "") + "</button>") +
+    '<div class="cuerpo"><div class="titulo"' + (hecha ? ' style="text-decoration:line-through;color:var(--gris)"' : "") + ">" + esc(t.titulo) + "</div>" +
+    '<div class="detalle">' + (atrasada(t) ? '<span class="chip atrasada">atrasada</span>' : "") + (t.prioridad ? '<span class="chip ' + t.prioridad + '">' + t.prioridad + "</span>" : "") + (t.estado === "en curso" ? '<span class="chip ambar">en curso</span>' : "") + esc(detalle) + "</div>" +
+    (t.comentario ? '<div class="detalle">💬 «' + esc(t.comentario) + "»</div>" : "") + "</div>" + botonesItem("Tareas", t) + "</div>";
+}
+function pTareas() {
+  const filtro = subpestana.tareas || "pendientes";
+  let lista = vivos("Tareas");
+  const orden = { principal: 0, secundaria: 1, terciaria: 2 };
+  if (filtro === "pendientes") lista = lista.filter((t) => t.estado !== "hecha");
+  else if (filtro === "hechas") lista = lista.filter((t) => t.estado === "hecha");
+  else if (filtro === "mias") lista = lista.filter((t) => t.para === "jefe" && t.estado !== "hecha");
+  else if (filtro === "equipo") lista = lista.filter((t) => t.para && t.para !== "jefe");
+  lista.sort((a, b) => (orden[a.prioridad] ?? 3) - (orden[b.prioridad] ?? 3) || b.creado - a.creado);
+  return cabecera("✅ Tareas", botonNuevo("Tareas", "Tarea nueva"), "Pulsa el círculo para marcarla hecha. Al dársela a alguien del equipo, explícale el porqué y los pasos: es lo único que verá.") +
+    pestanas("tareas", [["pendientes", "Pendientes"], ["mias", "Mías"], ["equipo", "Del equipo"], ["hechas", "Hechas"]], filtro) +
+    (lista.length ? '<div class="lista">' + lista.map(itemTarea).join("") + "</div>" : '<div class="vacio">No hay tareas aquí.</div>') + bloqueQuitados("Tareas", itemTarea);
+}
+const pestanas = (clave, ops, activa) => '<div class="pestanas">' + ops.map(([id, nom]) => '<button data-pestana="' + clave + ":" + id + '" class="' + (activa === id ? "activa" : "") + '">' + nom + "</button>").join("") + "</div>";
+
+// ---------- 👥 Equipo ----------
+function itemPersona(p) {
+  const suyas = vivos("Tareas").filter((t) => t.para === p.id), hechas = suyas.filter((t) => t.estado === "hecha").length;
+  return '<div class="item' + (p.quitado ? " quitado" : "") + '"><div class="marca-check">🧑‍🔧</div><div class="cuerpo"><div class="titulo">' + esc(p.nombre) + "</div>" +
+    '<div class="detalle">' + esc(p.rol || "") + (p.rol ? " · " : "") + hechas + " de " + suyas.length + " tareas hechas · entró " + haceCuanto(p.ultima_vez) + "</div></div>" +
+    botonesItem("Equipo", p, p.quitado ? "" : '<button data-codigo="' + p.id + '">🔑 Código nuevo</button><button data-dar-tarea="' + p.id + '">＋ Tarea</button>') + "</div>";
+}
+function pEquipo() {
+  const gente = vivos("Equipo");
+  return cabecera("👥 Equipo", botonNuevo("Equipo", "Añadir a alguien"), "Cada persona entra en esta misma web con «Soy del equipo» y su código de 6 cifras. Solo ve sus tareas: nada de dinero, clientes ni ideas.") +
+    '<form class="tarjeta" id="form-aviso" style="margin-bottom:14px"><h3>📌 Aviso para el equipo</h3><p style="margin:0 0 8px">Lo verán arriba del todo al entrar. Déjalo vacío para quitarlo.</p>' +
+    '<label class="campo"><textarea name="aviso" placeholder="Ej.: ¡Gracias por lo de ayer! Este finde toca repartir encuestas.">' + esc(avisoEquipo) + '</textarea></label><button class="secundario" type="submit">Guardar aviso</button></form>' +
+    '<form class="tarjeta" id="form-correo" style="margin-bottom:14px"><h3>✉️ Avisos por correo</h3><p style="margin:0 0 8px">Te llega un correo cuando alguien termina una tarea, y cada lunes a las 8 un resumen de la semana.</p>' +
+    '<label class="campo"><b>Mandarlos a</b><input name="correo" type="email" value="' + esc(correoAvisos) + '" placeholder="tu correo"></label><button class="secundario" type="submit">Guardar correo</button></form>' +
+    (gente.length ? '<div class="lista">' + gente.map(itemPersona).join("") + "</div>" : '<div class="vacio">Todavía no hay nadie. Añade a tu amigo y te dará su código para pasárselo.</div>') + bloqueQuitados("Equipo", itemPersona);
+}
+
+// ---------- 💶 Dinero ----------
+function itemDinero(m) {
+  const gasto = m.tipo === "gasto";
+  return '<div class="item' + (m.quitado ? " quitado" : "") + '"><div class="marca-check">' + (gasto ? "🔻" : "💚") + '</div><div class="cuerpo"><div class="titulo">' + esc(m.concepto) +
+    ' <span class="' + (gasto ? "menos" : "mas") + '">' + (gasto ? "−" : "+") + euros(m.importe) + "</span></div>" +
+    '<div class="detalle">' + esc([fechaCorta(new Date(m.dia + "T12:00").getTime()), m.categoria, m.idea].filter(Boolean).join(" · ")) + "</div></div>" + botonesItem("Dinero", m) + "</div>";
+}
+function pDinero() {
+  const c = cuentas();
+  const movs = vivos("Dinero").slice().sort((a, b) => String(b.dia).localeCompare(String(a.dia)) || b.creado - a.creado);
+  return cabecera("💶 Dinero", botonNuevo("Dinero", "Gano", { tipo: "ingreso" }) + botonNuevo("Dinero", "Gasto", { tipo: "gasto" }), "Apunta aquí todo lo que entra y sale, aunque sean 2 €. Así sabrás si de verdad ganas dinero.") +
+    '<div class="rejilla" style="margin-bottom:16px"><div class="tarjeta"><h3>Hoy</h3>' + tresCifras(c.hoy) + '</div><div class="tarjeta"><h3>Este mes</h3>' + tresCifras(c.mes) +
+    '</div><div class="tarjeta"><h3>Este año</h3>' + tresCifras(c.anio) + "</div></div>" +
+    (movs.length ? '<div class="lista">' + movs.map(itemDinero).join("") + "</div>" : '<div class="vacio">Aún no hay nada apuntado.</div>') + bloqueQuitados("Dinero", itemDinero);
+}
+
+// ---------- 🤝 Clientes ----------
+const COLOR_ESTADO = { posible: "", hablando: "ambar", cliente: "verde", "ya no": "rojo" };
+function itemCliente(x) {
+  return '<div class="item' + (x.quitado ? " quitado" : "") + '"><div class="marca-check">' + (x.clase === "app" ? "📱" : "🧰") + '</div><div class="cuerpo"><div class="titulo">' + esc(x.nombre) +
+    (x.negocio ? ' <span style="font-weight:400;color:var(--gris)">· ' + esc(x.negocio) + "</span>" : "") + "</div>" +
+    '<div class="detalle">' + (x.estado ? '<span class="chip ' + (COLOR_ESTADO[x.estado] || "") + '">' + esc(x.estado) + "</span>" : "") + esc([x.que, x.contacto, x.importe ? euros(x.importe) : ""].filter(Boolean).join(" · ")) + "</div>" +
+    (x.notas ? '<div class="detalle">' + esc(x.notas) + "</div>" : "") + "</div>" + botonesItem("Clientes", x) + "</div>";
+}
+function pClientes() {
+  const cual = subpestana.clientes || "servicio";
+  const lista = vivos("Clientes").filter((x) => x.clase === cual);
+  const ordenE = { cliente: 0, hablando: 1, posible: 2, "ya no": 3 };
+  lista.sort((a, b) => (ordenE[a.estado] ?? 2) - (ordenE[b.estado] ?? 2));
+  const n = (c) => vivos("Clientes").filter((x) => x.clase === c).length;
+  return cabecera("🤝 Clientes", botonNuevo("Clientes", cual === "app" ? "Cliente de app" : "Cliente de servicio", { clase: cual }),
+    cual === "app" ? "Los que usan una de nuestras apps (Manitu, Buenos Días, Abuela…)." : "Los trabajos que hago yo: plantillas, montar cosas, inventarios… (no son de una app).") +
+    pestanas("clientes", [["servicio", "🧰 Servicios (" + n("servicio") + ")"], ["app", "📱 Apps (" + n("app") + ")"]], cual) +
+    (lista.length ? '<div class="lista">' + lista.map(itemCliente).join("") + "</div>" : '<div class="vacio">Nadie todavía en ' + (cual === "app" ? "apps" : "servicios") + ".</div>") +
+    bloqueQuitados("Clientes", itemCliente);
+}
+
+// ---------- 💡 Ideas ----------
+function itemIdea(i) {
+  const pos = PASOS_IDEA.indexOf(i.paso);
+  return '<div class="item' + (i.quitado ? " quitado" : "") + '"><div class="cuerpo"><div class="titulo">' + esc(i.nombre) + ' <span class="chip ' + (i.paso === "descartada" ? "rojo" : i.paso === "en pausa" ? "" : "ambar") + '">' + esc(i.paso || "idea") + "</span></div>" +
+    (pos >= 0 ? '<div class="pasos" title="' + (pos + 1) + " de " + PASOS_IDEA.length + '">' + PASOS_IDEA.map((p, k) => "<i class=\"" + (k <= pos ? "si" : "") + "\"></i>").join("") + "</div>" : "") +
+    (i.siguiente ? '<div class="detalle">👉 ' + esc(i.siguiente) + "</div>" : "") + (i.notas ? '<div class="detalle">' + esc(i.notas) + "</div>" : "") + "</div>" +
+    botonesItem("Ideas", i, enlaceSeguro(i.enlace)) + "</div>";
+}
+function enlaceSeguro(u) { return /^https:\/\//.test(u || "") ? '<button data-abrir="' + esc(u) + '">🔗 Abrir</button>' : ""; }
+function pIdeas() {
+  const lista = vivos("Ideas").slice().sort((a, b) => {
+    const p = (x) => x.paso === "descartada" ? 99 : x.paso === "en pausa" ? 50 : -PASOS_IDEA.indexOf(x.paso);
+    return p(a) - p(b);
+  });
+  return cabecera("💡 Ideas", botonNuevo("Ideas", "Idea nueva"), "Los pasos: idea → lienzo → marca → prototipo → presentación → probando con clientes → vendiendo.") +
+    (lista.length ? '<div class="lista">' + lista.map(itemIdea).join("") + "</div>" : '<div class="vacio">Sin ideas apuntadas.</div>') + bloqueQuitados("Ideas", itemIdea);
+}
+
+// ---------- 📋 Encuestas ----------
+function itemEncuesta(x) {
+  const r = x.respuestas, meta = Number(x.meta) || 0;
+  return '<div class="item' + (x.quitado ? " quitado" : "") + '"><div class="cuerpo"><div class="titulo">' + esc(x.nombre) + "</div>" +
+    '<div class="detalle">' + (r === null || r === undefined ? "No puedo contar las respuestas (¿falta el ID de la hoja?)" : "<b>" + r + "</b> respuestas" + (meta ? " de " + meta : "")) + (x.idea ? " · " + esc(x.idea) : "") + "</div>" +
+    (meta && r !== null ? '<div class="barra"><div style="width:' + Math.min(100, Math.round(100 * r / meta)) + '%"></div></div>' : "") + "</div>" +
+    botonesItem("Encuestas", x, (/^https:\/\//.test(x.enlace || "") ? '<button data-wa="' + esc(x.enlace) + '" data-nombre="' + esc(x.nombre) + '">💬 Mandar</button>' : "") + enlaceSeguro(x.enlace)) + "</div>";
+}
+function pEncuestas() {
+  const lista = vivos("Encuestas");
+  return cabecera("📋 Encuestas", botonNuevo("Encuestas", "Encuesta"), "Las respuestas se cuentan solas cada vez que entras. «💬 Mandar» abre WhatsApp con el mensaje ya escrito.") +
+    (lista.length ? '<div class="lista">' + lista.map(itemEncuesta).join("") + "</div>" : '<div class="vacio">Sin encuestas.</div>') + bloqueQuitados("Encuestas", itemEncuesta);
+}
+
+// ---------- 🛠️ Talleres ----------
+function itemTaller(t) {
+  const total = Number(t.total) || 0, hechas = Number(t.hechas) || 0;
+  return '<div class="item' + (t.quitado ? " quitado" : "") + '"><div class="marca-check">🛠️</div><div class="cuerpo"><div class="titulo">' + esc(t.nombre) +
+    ' <span class="chip ' + (t.estado === "en marcha" ? "verde" : t.estado === "terminado" ? "terciaria" : "") + '">' + esc(t.estado || "") + "</span></div>" +
+    (total ? '<div class="detalle">' + hechas + " de " + total + ' tareas</div><div class="barra"><div style="width:' + Math.round(100 * hechas / total) + '%"></div></div>' : "") +
+    (t.notas ? '<div class="detalle">' + esc(t.notas) + "</div>" : "") + "</div>" + botonesItem("Talleres", t, enlaceSeguro(t.enlace)) + "</div>";
+}
+function pTalleres() {
+  const orden = { "en marcha": 0, "en pausa": 1, terminado: 2 };
+  const lista = vivos("Talleres").slice().sort((a, b) => (orden[a.estado] ?? 1) - (orden[b.estado] ?? 1));
+  return cabecera("🛠️ Talleres", botonNuevo("Talleres", "Taller"), "Donde Claude trabaja tarea a tarea. «🔗 Abrir» lleva a la web en directo de cada taller (solo la ves tú).") +
+    (lista.length ? '<div class="lista">' + lista.map(itemTaller).join("") + "</div>" : '<div class="vacio">Sin talleres.</div>') + bloqueQuitados("Talleres", itemTaller);
+}
+
+// ---------- Acciones del jefe ----------
+function guardarEnCerebro(peticion, textoBien, deshacer) {
+  $("#contenido").classList.add("cargando");
+  return llamar(peticion).then((r) => {
+    $("#contenido").classList.remove("cargando");
+    if (!r.ok) { avisar(textoError(r.error)); return r; }
+    datos = r.datos; avisoEquipo = r.aviso || ""; correoAvisos = r.correo || ""; pintarJefe();
+    if (textoBien) avisar(textoBien, deshacer ? () => deshacer(r) : null);
+    return r;
+  }).catch(() => { $("#contenido").classList.remove("cargando"); avisar(ERRORES.red); return { ok: false }; });
+}
+$("#contenido").addEventListener("submit", (e) => {
+  if (e.target.id === "form-correo") { e.preventDefault(); return guardarEnCerebro({ accion: "correo", correo: e.target.elements.correo.value }, "Correo guardado ✓"); }
+  if (e.target.id !== "form-aviso") return;
+  e.preventDefault();
+  guardarEnCerebro({ accion: "aviso", texto: e.target.elements.aviso.value }, "Aviso guardado ✓");
+});
+$("#contenido").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  const d = b.dataset;
+  if (d.pestana) { const [k, v] = d.pestana.split(":"); subpestana[k] = v; pintarJefe(); return; }
+  if (d.nuevo) return abrirFormulario(d.nuevo, null, d.extra ? JSON.parse(d.extra) : {});
+  if (d.darTarea) return abrirFormulario("Tareas", null, { para: d.darTarea, prioridad: "principal" });
+  if (d.editar) return abrirFormulario(d.editar, (datos[d.editar] || []).find((x) => x.id === d.id));
+  if (d.quitar) return guardarEnCerebro({ accion: "quitar", tabla: d.quitar, id: d.id }, "Quitado.", () => guardarEnCerebro({ accion: "recuperar", tabla: d.quitar, id: d.id }, "Recuperado."));
+  if (d.recuperar) return guardarEnCerebro({ accion: "recuperar", tabla: d.recuperar, id: d.id }, "Recuperado.");
+  if (d.marcar) {
+    const t = datos.Tareas.find((x) => x.id === d.marcar), hecha = t.estado === "hecha", antes = t.estado || "pendiente";
+    return guardarEnCerebro({ accion: "guardar", tabla: "Tareas", id: t.id, campos: { estado: hecha ? "pendiente" : "hecha" } }, hecha ? "Vuelve a estar pendiente." : "¡Hecha! ✅",
+      () => guardarEnCerebro({ accion: "guardar", tabla: "Tareas", id: t.id, campos: { estado: antes } }, "Deshecho."));
+  }
+  if (d.codigo) {
+    if (!confirm("¿Darle un código nuevo? El que tiene ahora dejará de funcionar.")) return;
+    return guardarEnCerebro({ accion: "codigo-nuevo", id: d.codigo }).then((r) => { if (r.ok) mostrarCodigo(nombreDe(d.codigo), r.codigo); });
+  }
+  if (d.abrir) return window.open(d.abrir, "_blank", "noopener");
+  if (d.wa) {
+    const texto = "¡Hola! 😊 Estoy haciendo un proyecto y me ayudaría mucho tu opinión. Es una encuesta cortita (2 minutos, anónima): " + d.wa + " ¡Gracias!";
+    return window.open("https://wa.me/?text=" + encodeURIComponent(texto), "_blank", "noopener");
+  }
+});
+
+function abrirFormulario(tabla, item, valores) {
+  const campos = formulario(tabla);
+  valores = Object.assign({}, valores || {}, item || {});
+  if (tabla === "Dinero" && !valores.dia) valores.dia = hoyTexto();
+  const titulos = { Tareas: "tarea", Equipo: "persona del equipo", Dinero: "movimiento", Clientes: "cliente", Ideas: "idea", Talleres: "taller", Encuestas: "encuesta" };
+  const velo = document.createElement("div");
+  velo.className = "velo";
+  velo.innerHTML = '<form class="ventana"><h2>' + (item ? "Cambiar " : "Nueva: ") + titulos[tabla] + "</h2>" + campos.map(([k, tipo, ops]) => {
+    const v = valores[k] === undefined || valores[k] === null ? "" : valores[k];
+    let casilla;
+    if (tipo === "lista") casilla = '<select name="' + k + '">' + ops.map(([val, nom]) => '<option value="' + esc(val) + '"' + (String(v) === String(val) ? " selected" : "") + ">" + esc(nom) + "</option>").join("") + "</select>";
+    else if (tipo === "largo") casilla = '<textarea name="' + k + '">' + esc(v) + "</textarea>";
+    else casilla = '<input name="' + k + '" value="' + esc(v) + '"' + (tipo === "numero" ? ' inputmode="decimal"' : tipo === "fecha" ? ' type="date"' : "") + ">";
+    return '<label class="campo"><b>' + esc(ETIQUETAS[k] || k) + "</b>" + casilla + "</label>";
+  }).join("") + '<div class="error" id="error-form"></div><div class="botones"><button type="button" class="secundario" data-cerrar>Cancelar</button><button class="principal" type="submit">Guardar</button></div></form>';
+  document.body.appendChild(velo);
+  const form = velo.querySelector("form");
+  if (tabla === "Dinero") {   // las categorías cambian según sea ingreso o gasto
+    const tipo = form.elements.tipo, cat = form.elements.categoria;
+    const poner = () => { const actual = cat.value; cat.innerHTML = CATEGORIAS[tipo.value].map((c) => "<option" + (c === actual ? " selected" : "") + ">" + esc(c) + "</option>").join(""); };
+    tipo.onchange = poner; poner();
+  }
+  const primero = form.querySelector("input, textarea"); if (primero) primero.focus();
+  velo.querySelector("[data-cerrar]").onclick = () => velo.remove();
+  velo.onclick = (e) => { if (e.target === velo) velo.remove(); };
+  form.onsubmit = (e) => {
+    e.preventDefault();
+    const c = {};
+    campos.forEach(([k]) => { c[k] = form.elements[k].value; });
+    form.classList.add("cargando");
+    llamar({ accion: "guardar", tabla: tabla, id: item ? item.id : undefined, campos: c }).then((r) => {
+      form.classList.remove("cargando");
+      if (!r.ok) { $("#error-form").textContent = textoError(r.error); return; }
+      velo.remove(); datos = r.datos; avisoEquipo = r.aviso || ""; correoAvisos = r.correo || ""; pintarJefe();
+      if (r.codigo) mostrarCodigo(c.nombre, r.codigo); else avisar("Guardado ✓");
+    }).catch(() => { form.classList.remove("cargando"); $("#error-form").textContent = ERRORES.red; });
+  };
+}
+
+function mostrarCodigo(nombre, codigo) {
+  const web = location.href.split("?")[0].split("#")[0];
+  const texto = "¡Hola " + nombre + "! 👋 Ya estás en el equipo. Entra en " + web + " , pulsa «Soy del equipo» y pon este código: " + codigo + " . Ahí verás tus tareas explicadas.";
+  const velo = document.createElement("div");
+  velo.className = "velo";
+  velo.innerHTML = '<div class="ventana"><h2>🔑 Código de ' + esc(nombre) + '</h2><p>Pásaselo a ' + esc(nombre) + '. <b>Solo se enseña ahora</b>: si se pierde, le das uno nuevo desde Equipo.</p>' +
+    '<div class="codigo-grande">' + esc(codigo) + '</div><div class="botones"><button class="secundario" data-copiar>📋 Copiar mensaje</button><button class="principal" data-wa>💬 Mandar por WhatsApp</button><button class="secundario" data-cerrar>Cerrar</button></div></div>';
+  document.body.appendChild(velo);
+  velo.querySelector("[data-cerrar]").onclick = () => velo.remove();
+  velo.querySelector("[data-wa]").onclick = () => window.open("https://wa.me/?text=" + encodeURIComponent(texto), "_blank", "noopener");
+  velo.querySelector("[data-copiar]").onclick = () => { try { navigator.clipboard.writeText(texto).then(() => avisar("Mensaje copiado ✓")); } catch (e) { avisar("No se ha podido copiar"); } };
+}
+
+// =====================================================================
+// EQUIPO
+// =====================================================================
+let equipoDatos = null;
+function pintarEquipo() {
+  const r = equipoDatos, orden = { principal: 0, secundaria: 1, terciaria: 2 };
+  const pend = r.tareas.filter((t) => t.estado !== "hecha").sort((a, b) => (orden[a.prioridad] ?? 3) - (orden[b.prioridad] ?? 3));
+  const hechas = r.tareas.filter((t) => t.estado === "hecha");
+  $("#equipo").innerHTML = (r.aviso ? '<div class="tablon"><b>📌 Aviso de Emmanuel</b>' + esc(r.aviso) + "</div>" : "") +
+    '<div class="hola"><h1>Hola, ' + esc(r.nombre) + ' 👋</h1><p>' + (pend.length ? "Tienes " + pend.length + (pend.length === 1 ? " tarea" : " tareas") + ". Empieza por la de arriba. Cuando acabes, pulsa «✅ Hecha» y cuéntale a Emmanuel lo que has visto." : "No tienes tareas pendientes. ¡Gracias! 🙌") + "</p></div>" +
+    pend.map(mision).join("") + (hechas.length ? '<h3 style="margin:20px 4px 10px;color:var(--gris)">Hechas (' + hechas.length + ")</h3>" + hechas.map(mision).join("") : "") +
+    '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' + botonInstalar("secundario instalar") + '<button class="enlace" data-salir>🚪 Salir</button></div>';
+}
+function mision(t) {
+  const hecha = t.estado === "hecha";
+  return '<div class="mision' + (hecha ? " hecha" : "") + '">' + (t.prioridad ? '<span class="chip ' + t.prioridad + '">' + t.prioridad + "</span>" : "") + (t.estado === "en curso" ? '<span class="chip ambar">la estás haciendo</span>' : "") +
+    (t.para_cuando ? '<span class="chip">para el ' + esc(fechaCorta(new Date(t.para_cuando + "T12:00").getTime())) + "</span>" : "") +
+    "<h2>" + (hecha ? "✅ " : "") + esc(t.titulo) + "</h2>" +
+    (t.porque ? '<div class="bloque"><b>¿Para qué sirve?</b>' + esc(t.porque) + "</div>" : "") +
+    (t.como ? '<div class="bloque"><b>Cómo hacerlo</b>' + esc(t.como) + "</div>" : "") +
+    (t.comentario ? '<div class="bloque"><b>Lo que contaste</b>' + esc(t.comentario) + "</div>" : "") +
+    '<div class="botones">' + (hecha ? '<button class="secundario" data-deshacer="' + t.id + '">↶ No estaba hecha</button>'
+      : (t.estado !== "en curso" ? '<button class="secundario" data-empezar="' + t.id + '">▶ La empiezo</button>' : "") + '<button class="principal" data-hecha="' + t.id + '">✅ Hecha</button>') + "</div></div>";
+}
+function accionEquipo(peticion, texto, deshacer) {
+  $("#equipo").classList.add("cargando");
+  return llamar(peticion).then((r) => {
+    $("#equipo").classList.remove("cargando");
+    if (!r.ok) { avisar(textoError(r.error)); return; }
+    equipoDatos = r; pintarEquipo(); if (texto) avisar(texto, deshacer);
+  }).catch(() => { $("#equipo").classList.remove("cargando"); avisar(ERRORES.red); });
+}
+$("#equipo").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  const d = b.dataset;
+  if (d.salir !== undefined) return salir();
+  if (d.instalar !== undefined) return instalarApp();
+  if (d.empezar) return accionEquipo({ accion: "empezar", id: d.empezar }, "¡A por ella! 💪");
+  if (d.deshacer) return accionEquipo({ accion: "deshacer", id: d.deshacer }, "Vuelve a estar pendiente.");
+  if (d.hecha) {
+    const t = equipoDatos.tareas.find((x) => x.id === d.hecha);
+    const velo = document.createElement("div");
+    velo.className = "velo";
+    velo.innerHTML = '<form class="ventana"><h2>✅ ¡Hecha!</h2><label class="campo"><b>¿Qué has visto? Cuéntaselo a Emmanuel (si quieres)</b><textarea name="c" placeholder="Ej.: lo he probado en mi móvil y el botón de guardar no se ve bien">' + esc(t.comentario || "") +
+      '</textarea></label><div class="botones"><button type="button" class="secundario" data-cerrar>Cancelar</button><button class="principal" type="submit">Marcar como hecha</button></div></form>';
+    document.body.appendChild(velo);
+    velo.querySelector("textarea").focus();
+    velo.querySelector("[data-cerrar]").onclick = () => velo.remove();
+    velo.querySelector("form").onsubmit = (ev) => {
+      ev.preventDefault(); const c = velo.querySelector("textarea").value; velo.remove();
+      accionEquipo({ accion: "hecha", id: t.id, comentario: c }, "¡Gracias! Hecha ✅", () => accionEquipo({ accion: "deshacer", id: t.id }, "Deshecho."));
+    };
+  }
+});
+
+// ---------- ＋ Apuntar rápido ----------
+$("#rapido").onclick = () => {
+  const velo = document.createElement("div");
+  velo.className = "velo";
+  velo.innerHTML = '<form class="ventana"><h2>＋ Apuntar rápido</h2><label class="campo"><b>¿Qué se te ha ocurrido?</b><input name="texto" autocomplete="off" placeholder="Ej.: llamar a la ferretería del barrio"></label>' +
+    '<div class="rapido-tipos"><button class="principal" data-tipo="Tareas">✅ Es una tarea</button><button class="principal" data-tipo="Ideas">💡 Es una idea</button></div>' +
+    '<div class="error" id="error-rapido"></div><button type="button" class="enlace" data-cerrar>Cancelar</button></form>';
+  document.body.appendChild(velo);
+  const form = velo.querySelector("form"), input = form.elements.texto;
+  input.focus();
+  velo.querySelector("[data-cerrar]").onclick = () => velo.remove();
+  velo.onclick = (e) => { if (e.target === velo) velo.remove(); };
+  form.onsubmit = (e) => { e.preventDefault(); form.querySelector('[data-tipo="Tareas"]').click(); };
+  form.querySelectorAll("[data-tipo]").forEach((b) => b.onclick = (e) => {
+    e.preventDefault();
+    const texto = input.value.trim();
+    if (!texto) { $("#error-rapido").textContent = "Escribe algo primero."; return; }
+    const tabla = b.dataset.tipo;
+    const campos = tabla === "Tareas" ? { titulo: texto, para: "jefe" } : { nombre: texto, paso: "idea" };
+    velo.remove();
+    guardarEnCerebro({ accion: "guardar", tabla: tabla, campos: campos }, tabla === "Tareas" ? "Tarea apuntada ✓" : "Idea apuntada 💡");
+  });
+};
+
+// ---------- 📲 Instalar como app ----------
+let avisoInstalar = null;
+const esIphone = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const yaInstalada = () => (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); avisoInstalar = e; if (datos) pintarJefe(); else if (equipoDatos) pintarEquipo(); });
+function botonInstalar(clase) {
+  if (yaInstalada() || (!avisoInstalar && !esIphone)) return "";
+  return '<button class="' + (clase || "") + '" data-instalar>📲 Instalar app</button>';
+}
+function instalarApp() {
+  if (avisoInstalar) { avisoInstalar.prompt(); avisoInstalar.userChoice.finally(() => { avisoInstalar = null; if (datos) pintarJefe(); else if (equipoDatos) pintarEquipo(); }); return; }
+  avisar("En iPhone: pulsa Compartir ⬆️ y luego «Añadir a pantalla de inicio».");
+}
+if ("serviceWorker" in navigator && location.protocol === "https:" && !MODO_DEMO) navigator.serviceWorker.register("sw.js").catch(() => {});
+
+// ---------- 👀 Visita guiada (solo en el modo de prueba) ----------
+const VISITA = [
+  { ir: "inicio", t: "Esto es el centro de mando", p: "Desde aquí se lleva toda la empresa. De un vistazo: lo que toca hacer, el dinero del mes, los clientes, las encuestas y el equipo." },
+  { ir: "ideas", t: "💡 Las ideas", p: "Cada idea pasa por pasos: idea → lienzo → marca → prototipo → presentación → probarla con clientes → venderla. La barra enseña por dónde va cada una." },
+  { ir: "tareas", t: "✅ Las tareas", p: "Cada tarea tiene prioridad (principal, secundaria, terciaria) y se le da a alguien del equipo, explicando para qué sirve y cómo hacerla." },
+  { ir: "clientes", t: "🤝 Los clientes", p: "Los clientes de servicios (trabajos que se hacen a mano) y los de las apps, por separado, y en qué punto está cada uno." },
+  { ir: "dinero", t: "💶 El dinero", p: "Todo lo que entra y lo que sale, aunque sean 2 €. Así se sabe si de verdad se gana dinero." },
+  { ir: "encuestas", t: "📋 Las encuestas", p: "Antes de construir nada, se pregunta a gente real. Las respuestas se cuentan solas, y con un botón se manda la encuesta por WhatsApp." },
+  { equipo: true, t: "🧑‍🔧 Y así lo ve alguien del equipo", p: "Entra con su código y solo ve SUS tareas, explicadas. Cuando acaba, pulsa «✅ Hecha» y cuenta lo que ha visto. Nada de dinero ni clientes." },
+  { equipo: true, fin: true, t: "Eso es todo 🙌", p: "Lo que más falta ahora son personas que prueben las cosas y den su opinión sincera. ¿Te apuntas?" }
+];
+let pasoVisita = -1;
+function pintarVisita() {
+  let caja = $(".visita");
+  if (pasoVisita < 0) { if (caja) caja.remove(); document.body.classList.remove("en-visita"); return; }
+  document.body.classList.add("en-visita");
+  const paso = VISITA[pasoVisita];
+  const mostrar = () => {
+    if (!caja) { caja = document.createElement("div"); caja.className = "visita"; document.body.appendChild(caja); }
+    caja.innerHTML = "<small>" + (pasoVisita + 1) + " de " + VISITA.length + "</small><h3>" + esc(paso.t) + "</h3><p>" + esc(paso.p) + '</p><div class="botones"><button class="fuera" data-visita="salir">Salir</button>' +
+      (pasoVisita > 0 ? '<button class="atras" data-visita="atras">← Atrás</button>' : "") +
+      '<button class="sig" data-visita="' + (paso.fin ? "salir" : "sig") + '">' + (paso.fin ? "Terminar" : "Siguiente →") + "</button></div>";
+  };
+  if (paso.equipo) {
+    if (!equipoDatos || sesion.como !== "equipo") {
+      sesion = { como: "equipo", secreto: "123456" };
+      return llamar({}).then((r) => { datos = null; $("#jefe").classList.add("oculto"); recibir(r); mostrar(); });
+    }
+  } else if (!datos || sesion.como !== "jefe") {
+    sesion = { como: "jefe", secreto: "demo" };
+    return llamar({}).then((r) => { equipoDatos = null; $("#equipo").classList.add("oculto"); apartado = paso.ir; recibir(r); mostrar(); });
+  } else { apartado = paso.ir; pintarJefe(); }
+  window.scrollTo(0, 0);
+  mostrar();
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-visita]"); if (!b) return;
+  const a = b.dataset.visita;
+  if (a === "salir") { pasoVisita = -1; pintarVisita(); location.href = location.pathname; return; }
+  pasoVisita += a === "sig" ? 1 : -1; pintarVisita();
+});
+
+// ---------- Arranque ----------
+if (MODO_DEMO) $("#demo").classList.remove("oculto");
+const guardada = leerGuardada();
+if (MODO_DEMO && /[?&]visita\b/.test(location.search)) {
+  pasoVisita = 0; pintarVisita();
+} else if (guardada && guardada.secreto) {
+  sesion = guardada;
+  llamar({}).then((r) => { if (r.ok) recibir(r); else { guardarSesion(null); sesion = null; } }).catch(() => { sesion = null; });
+}
+</script>
+</body>
+</html>

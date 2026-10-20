@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Touless · Prototipo de la app</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --carbon:#18171d; --carbon2:#24222b; --oro:#c9a27e; --oro-claro:#efe2d4; --crema:#faf7f2; --texto:#1d1c22; --suave:#7a7680;
+          --borde:#ece6de; --verde:#3f8f63; --verde-claro:#e2f3e8; --rojo:#c0503c; --rojo-claro:#fbe9e5;
+          --s1:#e8ddf4; --s2:#dceefa; --s3:#f6e3d3; --s4:#e0f1e6; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:#ece8e2; color:var(--texto); font:14px/1.4 "Nunito", system-ui, sans-serif; }
+  @media (prefers-color-scheme: dark) { body { background:#121115; } .cab h1, .etiqueta { color:#f3ede6 !important; } .cab p, .etiqueta small, .nota-proto { color:#a9a3ad !important; } }
+  .serif { font-family:"Fraunces", Georgia, serif; }
+  .cab { max-width:1200px; margin:0 auto; padding:18px 16px 4px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  .marca { width:44px; height:44px; border-radius:13px; background:var(--carbon); color:var(--oro); display:flex; align-items:center; justify-content:center; font-family:"Fraunces", serif; font-size:24px; font-weight:700; }
+  .cab h1 { margin:0; font-family:"Fraunces", serif; font-size:24px; color:var(--carbon); }
+  .cab p { margin:0; color:var(--suave); font-size:13px; }
+  .acciones { margin-left:auto; display:flex; gap:8px; }
+  .acciones button { font:inherit; font-weight:800; border:1px solid var(--borde); background:#fff; border-radius:999px; padding:7px 14px; cursor:pointer; }
+  .acciones button:disabled { opacity:.45; cursor:default; }
+  .elegir { display:none; max-width:1200px; margin:6px auto 0; padding:0 16px; gap:6px; }
+  .elegir button { flex:1; font:inherit; font-weight:800; border:1px solid var(--borde); background:#fff; border-radius:12px; padding:8px 4px; cursor:pointer; font-size:13px; }
+  .elegir button.activo { background:var(--carbon); color:var(--oro); border-color:var(--carbon); }
+  .escena { max-width:1200px; margin:0 auto; padding:12px 16px 20px; display:flex; gap:22px; justify-content:center; align-items:flex-start; }
+  .lado { display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .etiqueta { font-weight:800; font-size:15px; text-align:center; color:var(--carbon); }
+  .etiqueta small { display:block; font-weight:600; color:var(--suave); font-size:12px; }
+  .movil { width:340px; height:690px; border-radius:44px; background:#0c0c0e; padding:11px; box-shadow:0 24px 50px rgba(0,0,0,.28); }
+  .pantalla { width:100%; height:100%; border-radius:34px; overflow:hidden; background:var(--crema); display:flex; flex-direction:column; position:relative; }
+  @media (max-width:1120px) { .elegir { display:flex; } .lado.oculto { display:none; } .movil { width:min(340px, calc(100vw - 32px)); } }
+  /* Cabecera elegante */
+  .top { background:var(--carbon); color:#fff; padding:18px 18px 14px; }
+  .top small { color:var(--oro); font-weight:800; letter-spacing:.08em; text-transform:uppercase; font-size:11px; }
+  .top h2 { margin:2px 0 0; font-family:"Fraunces", serif; font-size:24px; font-weight:600; }
+  .top .sub { color:#b9b4bd; font-size:12px; }
+  .contenido { flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:12px; }
+  .tabs { display:flex; background:#fff; border-top:1px solid var(--borde); padding:6px 4px 10px; }
+  .tabs button { flex:1; border:0; background:none; font:inherit; font-size:11px; font-weight:700; color:var(--suave); display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer; position:relative; }
+  .tabs button svg { width:22px; height:22px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  .tabs button.activa { color:var(--carbon); } .tabs button.activa svg { stroke:var(--oro); }
+  .punto { position:absolute; top:-2px; right:30%; width:8px; height:8px; border-radius:50%; background:var(--rojo); }
+  .tarjeta { background:#fff; border-radius:18px; padding:14px; box-shadow:0 1px 0 var(--borde), 0 6px 18px rgba(24,23,29,.05); }
+  .tarjeta h3 { margin:0 0 8px; font-family:"Fraunces", serif; font-size:17px; font-weight:600; }
+  .kpis { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .kpi { background:#fff; border-radius:16px; padding:10px; text-align:center; box-shadow:0 1px 0 var(--borde); }
+  .kpi b { display:block; font-family:"Fraunces", serif; font-size:21px; }
+  .kpi span { font-size:11px; color:var(--suave); }
+  .kpi.oro { background:var(--carbon); color:#fff; } .kpi.oro b { color:var(--oro); } .kpi.oro span { color:#b9b4bd; }
+  /* Agenda por columnas */
+  .agenda { display:grid; grid-template-columns:38px 1fr 1fr; gap:0 6px; position:relative; }
+  .agenda .col-tit { text-align:center; font-weight:800; font-size:12px; padding-bottom:6px; }
+  .horas div { height:34px; font-size:10px; color:var(--suave); text-align:right; padding-right:4px; transform:translateY(-6px); }
+  .columna { position:relative; height:340px; background:repeating-linear-gradient(180deg,#fff 0 33px,#f1ece5 33px 34px); border-radius:10px; }
+  .cita { position:absolute; left:3px; right:3px; border-radius:9px; padding:4px 6px; font-size:11px; line-height:1.2; overflow:hidden; border-left:3px solid rgba(0,0,0,.25); }
+  .cita b { display:block; font-size:12px; }
+  .cita.hecha { opacity:.55; } .cita.novino { background:var(--rojo-claro) !important; text-decoration:line-through; }
+  .cita.nueva { box-shadow:0 0 0 2px var(--oro); }
+  /* Listas */
+  .fila { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:9px 0; border-bottom:1px solid #f1ece5; }
+  .fila:last-child { border-bottom:0; }
+  .fila .nom { font-weight:800; } .fila small { color:var(--suave); display:block; font-size:12px; }
+  .chip { font-size:11px; font-weight:800; border-radius:999px; padding:2px 8px; background:var(--oro-claro); color:#7a5a3b; }
+  .chip.ok { background:var(--verde-claro); color:var(--verde); } .chip.mal { background:var(--rojo-claro); color:var(--rojo); }
+  .btn { font:inherit; font-weight:800; border:0; border-radius:12px; padding:10px 12px; cursor:pointer; background:var(--carbon); color:#fff; }
+  .btn.oro { background:var(--oro); color:var(--carbon); }
+  .btn.suave { background:#f1ece5; color:var(--carbon); }
+  .btn.peligro { background:var(--rojo-claro); color:var(--rojo); }
+  .btn.peq { padding:6px 10px; font-size:12px; border-radius:10px; }
+  .fila-btn { display:flex; gap:6px; }
+  .aviso { background:var(--carbon); color:#fff; border-radius:16px; padding:12px 14px; font-size:13px; }
+  .aviso b { color:var(--oro); }
+  /* Reserva de la clienta */
+  .pasos { display:flex; gap:4px; } .pasos i { flex:1; height:4px; border-radius:2px; background:#e6dfd6; } .pasos i.on { background:var(--oro); }
+  .opcion { width:100%; text-align:left; font:inherit; background:#fff; border:1.5px solid var(--borde); border-radius:16px; padding:12px 14px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .opcion:hover { border-color:var(--oro); }
+  .opcion b { font-size:15px; } .opcion small { color:var(--suave); display:block; }
+  .opcion .precio { font-family:"Fraunces", serif; font-size:17px; }
+  .horas-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .horas-grid button { font:inherit; font-weight:800; background:#fff; border:1.5px solid var(--borde); border-radius:12px; padding:10px 4px; cursor:pointer; }
+  .horas-grid button small { display:block; font-weight:600; color:var(--suave); font-size:11px; }
+  .billete { background:var(--carbon); color:#fff; border-radius:20px; padding:18px; text-align:center; }
+  .billete .serif { font-size:30px; color:var(--oro); margin:4px 0; }
+  .vacio { color:var(--suave); text-align:center; padding:24px 8px; }
+  .volver { background:none; border:0; font:inherit; font-weight:800; color:var(--suave); cursor:pointer; text-align:left; padding:0; }
+  .nota-proto { max-width:1200px; margin:0 auto; padding:0 16px 24px; color:var(--suave); font-size:13px; text-align:center; }
+</style>
+</head>
+<body>
+<div class="cab">
+  <div class="marca">T</div>
+  <div><h1>Touless · la app</h1><p>Tres caras conectadas. Empieza reservando como la clienta.</p></div>
+  <div class="acciones"><button id="deshacer" disabled>↩ Deshacer</button><button id="reiniciar">⟲ Empezar de nuevo</button></div>
+</div>
+<div class="elegir"><button data-ver="du" class="activo">👩‍💼 Dueña</button><button data-ver="em">✂️ Laura</button><button data-ver="cl">📱 Clienta</button></div>
+<div class="escena">
+  <div class="lado" id="lado-du"><div class="etiqueta">👩‍💼 La dueña<small>todo el salón en su mano</small></div><div class="movil"><div class="pantalla" id="app-du"></div></div></div>
+  <div class="lado" id="lado-em"><div class="etiqueta">✂️ Laura, la empleada<small>solo su día</small></div><div class="movil"><div class="pantalla" id="app-em"></div></div></div>
+  <div class="lado" id="lado-cl"><div class="etiqueta">📱 Marta, la clienta<small>reserva sin llamar</small></div><div class="movil"><div class="pantalla" id="app-cl"></div></div></div>
+</div>
+<p class="nota-proto">Prototipo con datos de ejemplo (salón y personas inventados). Nada se guarda ni se envía de verdad.</p>
+
+<script>
+const SERVICIOS = [
+  { id: "corte", nombre: "Corte", min: 30, precio: 18, color: "var(--s2)" },
+  { id: "peinado", nombre: "Corte y peinado", min: 45, precio: 28, color: "var(--s1)" },
+  { id: "tinte", nombre: "Tinte", min: 90, precio: 45, color: "var(--s3)" },
+  { id: "barba", nombre: "Barba", min: 20, precio: 10, color: "var(--s4)" }
+];
+const EMPLEADAS = ["Laura", "Sara"];
+const INICIO = 9 * 60, FIN = 14 * 60, FILA = 34;            // la agenda de la mañana: de 9:00 a 14:00, filas de media hora
+const ICONOS = {
+  hoy: '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+  clientes: '<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><circle cx="17.5" cy="9" r="2.5"/><path d="M17 14.5c2.3.2 4 1.7 4.5 4.5"/></svg>',
+  caja: '<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M16 15h2"/></svg>',
+  mas: '<svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg>'
+};
+const min = h => { const [a, b] = h.split(":").map(Number); return a * 60 + b; };
+const hora = m => Math.floor(m / 60) + ":" + String(m % 60).padStart(2, "0");
+const servicio = id => SERVICIOS.find(s => s.id === id);
+const euros = x => x.toLocaleString("es-ES", { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + " €";
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function inicial() {
+  return {
+    citas: [
+      { id: 1, clienta: "Carmen", servicio: "tinte", empleada: "Laura", hora: "9:00", estado: "hecha" },
+      { id: 2, clienta: "Javi", servicio: "barba", empleada: "Sara", hora: "9:30", estado: "hecha" },
+      { id: 3, clienta: "Pilar", servicio: "peinado", empleada: "Sara", hora: "10:00", estado: "confirmada" },
+      { id: 4, clienta: "Lucía", servicio: "corte", empleada: "Laura", hora: "11:00", estado: "confirmada" },
+      { id: 5, clienta: "Inés", servicio: "peinado", empleada: "Laura", hora: "12:30", estado: "confirmada" },
+      { id: 6, clienta: "Nerea", servicio: "tinte", empleada: "Sara", hora: "12:00", estado: "confirmada" }
+    ],
+    espera: [{ clienta: "Rosa", servicio: "corte", cuando: "Hoy, si se libera algo" }],
+    gastos: [{ que: "Productos de color", cuanto: 35 }],
+    historial: { Carmen: 12, Javi: 8, Pilar: 5, "Lucía": 3, "Inés": 7, Nerea: 2, Rosa: 4 },
+    recuperados: 0, avisos: [],
+    reserva: { paso: 0, servicio: null, empleada: null, hora: null, citaId: null }, sigId: 7
+  };
+}
+let S = inicial(), pila = [];
+const ui = { ver: "du", tab: "hoy" };
+try { const g = JSON.parse(localStorage.getItem("touless-proto")); if (g) S = g; } catch (e) {}
+function hacer(f) { pila.push(JSON.stringify(S)); f(); try { localStorage.setItem("touless-proto", JSON.stringify(S)); } catch (e) {} pintar(); }
+
+// ¿Está libre una empleada a esa hora para ese servicio? (sin pisar otra cita y dentro del horario)
+function libre(empleada, inicio, duracion) {
+  if (inicio < INICIO || inicio + duracion > FIN) return false;
+  return !S.citas.some(c => c.empleada === empleada && c.estado !== "cancelada" && c.estado !== "novino" &&
+    inicio < min(c.hora) + servicio(c.servicio).min && min(c.hora) < inicio + duracion);
+}
+function huecos(serv, empleada) {
+  const r = [], dur = servicio(serv).min;
+  for (let t = INICIO; t + dur <= FIN; t += 30) {
+    const quien = empleada ? (libre(empleada, t, dur) ? empleada : null) : EMPLEADAS.find(e => libre(e, t, dur));   // «me da igual»: la primera libre
+    if (quien) r.push([hora(t), quien]);
+  }
+  return r;
+}
+
+// ═══ Dueña ═══
+function pintarDuena() {
+  const vistas = { hoy: vistaHoy, clientes: vistaClientes, caja: vistaCaja, mas: vistaMas };
+  const tabs = [["hoy", "Hoy"], ["clientes", "Clientes"], ["caja", "Caja"], ["mas", "Más"]];
+  const titulos = { hoy: "Agenda de hoy", clientes: "Clientes", caja: "Caja de hoy", mas: "Tu salón" };
+  document.getElementById("app-du").innerHTML = `
+    <div class="top"><small>Salón Ejemplo</small><h2>${titulos[ui.tab]}</h2><div class="sub">Lunes · 2 empleadas</div></div>
+    <div class="contenido">${vistas[ui.tab]()}</div>
+    <div class="tabs">${tabs.map(([id, n]) => `<button data-tab="${id}" class="${ui.tab === id ? "activa" : ""}">${ICONOS[id]}${n}${id === "hoy" && S.avisos.length ? '<i class="punto"></i>' : ""}</button>`).join("")}</div>`;
+}
+function vistaHoy() {
+  const activas = S.citas.filter(c => c.estado !== "cancelada");
+  const avisos = S.avisos.slice(-2).reverse().map(a => `<div class="aviso">${a}</div>`).join("");
+  const columnas = EMPLEADAS.map(e => `<div class="columna">${activas.filter(c => c.empleada === e).map(c => {
+    const s = servicio(c.servicio);
+    return `<div class="cita ${c.estado === "hecha" ? "hecha" : ""} ${c.estado === "novino" ? "novino" : ""} ${c.nueva ? "nueva" : ""}"
+      style="top:${(min(c.hora) - INICIO) / 30 * FILA + 1}px;height:${s.min / 30 * FILA - 3}px;background:${s.color}"><b>${esc(c.clienta)}</b>${c.hora} · ${s.nombre}</div>`;
+  }).join("")}</div>`).join("");
+  const horas = []; for (let t = INICIO; t < FIN; t += 30) horas.push(`<div>${t % 60 ? "" : hora(t)}</div>`);
+  const pendientes = activas.filter(c => c.estado === "confirmada").length;
+  return `${avisos}
+    <div class="kpis"><div class="kpi"><b>${activas.filter(c => c.estado !== "novino").length}</b><span>citas hoy</span></div>
+      <div class="kpi"><b>${pendientes}</b><span>por atender</span></div>
+      <div class="kpi oro"><b>${S.recuperados}</b><span>huecos salvados</span></div></div>
+    <div class="tarjeta"><div class="agenda"><div></div>${EMPLEADAS.map(e => `<div class="col-tit">${e}</div>`).join("")}
+      <div class="horas">${horas.join("")}</div>${columnas}</div></div>`;
+}
+function vistaClientes() {
+  const nombres = Object.keys(S.historial).sort((a, b) => S.historial[b] - S.historial[a]);
+  return `<div class="tarjeta"><h3>Tus clientas</h3>${nombres.map(n => {
+    const ultima = S.citas.filter(c => c.clienta === n).pop();
+    return `<div class="fila"><div><span class="nom">${esc(n)}</span><small>${S.historial[n]} visitas${ultima ? " · suele pedir " + servicio(ultima.servicio).nombre.toLowerCase() : ""}</small></div>${S.historial[n] >= 8 ? '<span class="chip">⭐ fiel</span>' : ""}</div>`;
+  }).join("")}</div>`;
+}
+function vistaCaja() {
+  const hechas = S.citas.filter(c => c.estado === "hecha");
+  const ingresos = hechas.reduce((s, c) => s + servicio(c.servicio).precio, 0);
+  const gastos = S.gastos.reduce((s, g) => s + g.cuanto, 0);
+  const novino = S.citas.filter(c => c.estado === "novino");
+  return `<div class="kpis"><div class="kpi"><b>${euros(ingresos)}</b><span>ingresos</span></div><div class="kpi"><b>${euros(gastos)}</b><span>gastos</span></div>
+      <div class="kpi oro"><b>${euros(ingresos - gastos)}</b><span>beneficio</span></div></div>
+    <div class="tarjeta"><h3>Cobrado hoy</h3>${hechas.map(c => `<div class="fila"><div><span class="nom">${esc(c.clienta)}</span><small>${servicio(c.servicio).nombre} · ${c.empleada}</small></div><b>${euros(servicio(c.servicio).precio)}</b></div>`).join("") || '<div class="vacio">Todavía nada</div>'}</div>
+    <div class="tarjeta"><h3>Gastos</h3>${S.gastos.map(g => `<div class="fila"><span>${esc(g.que)}</span><b>− ${euros(g.cuanto)}</b></div>`).join("")}</div>
+    ${novino.length ? `<div class="tarjeta"><h3>Plantones</h3>${novino.map(c => `<div class="fila"><span>${esc(c.clienta)} · ${c.hora}</span><span class="chip mal">no vino · ${euros(servicio(c.servicio).precio)} perdidos</span></div>`).join("")}</div>` : ""}`;
+}
+function vistaMas() {
+  return `<div class="tarjeta"><h3>Lista de espera</h3>${S.espera.length ? S.espera.map(e => `<div class="fila"><div><span class="nom">${esc(e.clienta)}</span><small>${servicio(e.servicio).nombre} · ${esc(e.cuando)}</small></div><span class="chip">esperando</span></div>`).join("") : '<div class="vacio">Nadie esperando</div>'}
+      <p style="margin:6px 0 0;color:var(--suave);font-size:12px">Si alguien cancela, el hueco se le ofrece sola a quien espera.</p></div>
+    <div class="tarjeta"><h3>Servicios</h3>${SERVICIOS.map(s => `<div class="fila"><div><span class="nom">${s.nombre}</span><small>${s.min} min</small></div><b>${euros(s.precio)}</b></div>`).join("")}</div>
+    <div class="tarjeta"><h3>Horario</h3><div class="fila"><span>Lunes a viernes</span><b>9:00 – 14:00</b></div><div class="fila"><span>Sábados</span><b>9:00 – 13:00</b></div></div>`;
+}
+
+// ═══ Empleada ═══
+function pintarEmpleada() {
+  const mias = S.citas.filter(c => c.empleada === "Laura" && c.estado !== "cancelada").sort((a, b) => min(a.hora) - min(b.hora));
+  const siguiente = mias.find(c => c.estado === "confirmada");
+  document.getElementById("app-em").innerHTML = `
+    <div class="top"><small>Tu día</small><h2>Hola, Laura</h2><div class="sub">${mias.length} citas · ${mias.filter(c => c.estado === "hecha").length} hechas</div></div>
+    <div class="contenido">
+      ${siguiente ? `<div class="billete"><div style="font-size:12px;color:#b9b4bd">SIGUIENTE</div><div class="serif">${siguiente.hora}</div><b>${esc(siguiente.clienta)}</b> · ${servicio(siguiente.servicio).nombre}</div>` : '<div class="billete"><div class="serif">¡Día terminado!</div></div>'}
+      <div class="tarjeta"><h3>Tus citas</h3>${mias.map(c => `<div class="fila"><div><span class="nom">${c.hora} · ${esc(c.clienta)}</span><small>${servicio(c.servicio).nombre} · ${servicio(c.servicio).min} min</small></div>${
+        c.estado === "confirmada" ? `<div class="fila-btn"><button class="btn peq" data-terminar="${c.id}">✓ Hecha</button><button class="btn peq peligro" data-novino="${c.id}">No vino</button></div>`
+        : c.estado === "hecha" ? '<span class="chip ok">hecha</span>' : '<span class="chip mal">no vino</span>'}</div>`).join("")}</div>
+      <p style="color:var(--suave);font-size:12px;text-align:center;margin:0">Laura solo ve su día. Los precios y la caja, solo la dueña.</p>
+    </div>`;
+}
+
+// ═══ Clienta ═══
+function pintarClienta() {
+  const r = S.reserva, p = r.paso;
+  let cuerpo = "";
+  if (p === 0) cuerpo = `<h3 class="serif" style="margin:0">¿Qué te hacemos?</h3>${SERVICIOS.map(s => `<button class="opcion" data-serv="${s.id}"><span><b>${s.nombre}</b><small>${s.min} min</small></span><span class="precio">${euros(s.precio)}</span></button>`).join("")}`;
+  else if (p === 1) cuerpo = `<button class="volver" data-atras="0">‹ Atrás</button><h3 class="serif" style="margin:0">¿Con quién?</h3>
+      <button class="opcion" data-emp="cualquiera"><span><b>Me da igual</b><small>la primera que esté libre</small></span><span>✨</span></button>
+      ${EMPLEADAS.map(e => `<button class="opcion" data-emp="${e}"><span><b>${e}</b><small>${huecos(r.servicio, e).length} huecos hoy</small></span><span>›</span></button>`).join("")}`;
+  else if (p === 2) {
+    const h = huecos(r.servicio, r.empleada === "cualquiera" ? null : r.empleada);
+    cuerpo = `<button class="volver" data-atras="1">‹ Atrás</button><h3 class="serif" style="margin:0">Hoy, lunes</h3>
+      ${h.length ? `<div class="horas-grid">${h.slice(0, 9).map(([t, e]) => `<button data-hora="${t}" data-quien="${e}">${t}<small>${e}</small></button>`).join("")}</div>` : '<div class="vacio">No quedan huecos hoy.<br>Apúntate a la lista de espera.</div>'}`;
+  }
+  else if (p === 3) { const s = servicio(r.servicio); cuerpo = `<button class="volver" data-atras="2">‹ Atrás</button><h3 class="serif" style="margin:0">Confirma tu cita</h3>
+      <div class="tarjeta"><div class="fila"><span>Servicio</span><b>${s.nombre}</b></div><div class="fila"><span>Con</span><b>${r.quien}</b></div><div class="fila"><span>Hoy a las</span><b>${r.hora}</b></div><div class="fila"><span>Precio</span><b>${euros(s.precio)}</b></div><div class="fila"><span>A nombre de</span><b>Marta</b></div></div>
+      <button class="btn oro" data-cl="confirmar">Reservar</button>`; }
+  else if (p === 4) { const c = S.citas.find(x => x.id === r.citaId), s = servicio(c.servicio);
+    cuerpo = `<div class="billete"><div style="font-size:12px;color:#b9b4bd">TU CITA</div><div class="serif">${c.hora}</div><b>${s.nombre}</b> con ${c.empleada}<br><span style="color:#b9b4bd;font-size:12px">Salón Ejemplo · hoy</span></div>
+      <p style="color:var(--suave);font-size:13px;text-align:center;margin:0">Te recordamos la cita una hora antes. Si no puedes venir, avísanos aquí: tu hueco no se pierde, se lo damos a otra clienta.</p>
+      <button class="btn peligro" data-cl="no-puedo">No puedo ir</button>`; }
+  else cuerpo = `<div class="billete"><div class="serif">Gracias por avisar</div>Tu hueco ya lo tiene otra clienta 💛<br><span style="color:#b9b4bd;font-size:12px">Cuando quieras, reserva otra vez.</span></div><button class="btn suave" data-cl="otra">Reservar otra cita</button>`;
+  document.getElementById("app-cl").innerHTML = `
+    <div class="top"><small>Salón Ejemplo</small><h2>Reserva tu cita</h2><div class="sub">Sin llamar · en 4 toques</div></div>
+    <div class="contenido">${p <= 3 ? `<div class="pasos">${[0, 1, 2, 3].map(i => `<i class="${i <= p ? "on" : ""}"></i>`).join("")}</div>` : ""}${cuerpo}</div>`;
+}
+
+function pintar() {
+  pintarDuena(); pintarEmpleada(); pintarClienta();
+  document.getElementById("deshacer").disabled = !pila.length;
+  for (const id of ["du", "em", "cl"]) document.getElementById("lado-" + id).classList.toggle("oculto", ui.ver !== id);
+  document.querySelectorAll(".elegir button").forEach(b => b.classList.toggle("activo", b.dataset.ver === ui.ver));
+}
+const movil = () => window.innerWidth <= 1120;
+
+document.addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const d = b.dataset;
+  if (d.ver) { ui.ver = d.ver; pintar(); return; }
+  if (d.tab) { ui.tab = d.tab; pintar(); return; }
+  if (d.serv) return hacer(() => { S.reserva = { ...S.reserva, paso: 1, servicio: d.serv }; });
+  if (d.emp) return hacer(() => { S.reserva.paso = 2; S.reserva.empleada = d.emp; });
+  if (d.hora) return hacer(() => { S.reserva.paso = 3; S.reserva.hora = d.hora; S.reserva.quien = d.quien; });
+  if (d.atras) return hacer(() => { S.reserva.paso = Number(d.atras); });
+  if (d.cl === "confirmar") return hacer(() => {
+    const r = S.reserva, id = S.sigId++;
+    S.citas.forEach(c => { c.nueva = false; });
+    S.citas.push({ id, clienta: "Marta", servicio: r.servicio, empleada: r.quien, hora: r.hora, estado: "confirmada", nueva: true });
+    S.historial.Marta = (S.historial.Marta || 0) + 1;
+    S.avisos.push(`📅 <b>Nueva cita:</b> Marta, ${servicio(r.servicio).nombre.toLowerCase()} a las ${r.hora} con ${r.quien}.`);
+    r.paso = 4; r.citaId = id; ui.tab = "hoy"; if (movil()) ui.ver = "du";
+  });
+  if (d.cl === "no-puedo") return hacer(() => {
+    const c = S.citas.find(x => x.id === S.reserva.citaId);
+    c.estado = "cancelada"; S.reserva.paso = 5;
+    // «Adiós a los plantones»: el hueco se ofrece a la lista de espera y, en el ejemplo, Rosa lo coge
+    const e = S.espera.find(x => servicio(x.servicio).min <= servicio(c.servicio).min);
+    if (e) {
+      S.citas.forEach(x => { x.nueva = false; });
+      S.citas.push({ id: S.sigId++, clienta: e.clienta, servicio: e.servicio, empleada: c.empleada, hora: c.hora, estado: "confirmada", nueva: true });
+      S.espera = S.espera.filter(x => x !== e); S.recuperados++;
+      S.avisos.push(`♻️ <b>Hueco salvado:</b> Marta canceló las ${c.hora} y ${e.clienta}, que estaba en la lista de espera, lo ha cogido.`);
+    } else S.avisos.push(`❌ Marta canceló las ${c.hora}. No había nadie en espera.`);
+    if (movil()) ui.ver = "du";
+  });
+  if (d.cl === "otra") return hacer(() => { S.reserva = { paso: 0, servicio: null, empleada: null, hora: null, citaId: null }; });
+  if (d.terminar) return hacer(() => { S.citas.find(c => c.id === Number(d.terminar)).estado = "hecha"; });
+  if (d.novino) return hacer(() => { const c = S.citas.find(c => c.id === Number(d.novino)); c.estado = "novino"; S.avisos.push(`😕 <b>${esc(c.clienta)} no vino</b> a las ${c.hora}. Se apunta en su ficha.`); });
+});
+document.getElementById("deshacer").onclick = () => { if (!pila.length) return; S = JSON.parse(pila.pop()); try { localStorage.setItem("touless-proto", JSON.stringify(S)); } catch (e) {} pintar(); };
+document.getElementById("reiniciar").onclick = () => hacer(() => { S = inicial(); ui.tab = "hoy"; });
+pintar();
+</script>
+</body>
+</html>

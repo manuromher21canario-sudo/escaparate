@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#14203A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Escaparate">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icono-32.png">
+<link rel="apple-touch-icon" href="icono-180.png">
+<title>Escaparate</title>
+<style>
+  :root {
+    --fondo: #14203A; --fondo2: #1C2B4A; --papel: #FFFFFF; --tinta: #1F2328; --claro: #E8ECF5; --gris: #A9B2C6;
+    --ambar: #E09A2B; --verde: #2E9E66;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--fondo); color: var(--claro); font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+  button, a { font: inherit; color: inherit; }
+  button { cursor: pointer; border: 0; background: none; }
+  :focus-visible { outline: 3px solid var(--ambar); outline-offset: 2px; }
+  .oculto { display: none !important; }
+
+  /* Portada */
+  .portada { max-width: 1040px; margin: 0 auto; padding: 40px 20px 60px; }
+  .portada .logo { font-size: 44px; }
+  .portada h1 { font-size: 40px; margin: 6px 0 8px; line-height: 1.1; }
+  .portada .lema { color: var(--gris); font-size: 19px; margin: 0 0 26px; max-width: 60ch; line-height: 1.5; }
+  .empezar { background: var(--ambar); color: #1B1406; font-weight: 800; font-size: 18px; border-radius: 14px; padding: 15px 24px; }
+  .rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; margin-top: 30px; }
+  .tarjeta { background: var(--fondo2); border-radius: 18px; padding: 18px; text-align: left; border: 1px solid rgba(255,255,255,.06); display: flex; flex-direction: column; gap: 6px; transition: transform .15s; }
+  .tarjeta:hover { transform: translateY(-2px); border-color: rgba(255,255,255,.2); }
+  .tarjeta .ico { font-size: 30px; }
+  .tarjeta b { font-size: 19px; }
+  .tarjeta span { color: var(--gris); line-height: 1.45; font-size: 15px; }
+  .tarjeta small { color: var(--ambar); font-weight: 700; margin-top: 4px; }
+  .num { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(255,255,255,.1); font-size: 13px; margin-right: 6px; }
+
+  /* Visor */
+  .visor { position: fixed; inset: 0; display: flex; flex-direction: column; background: var(--fondo); }
+  .barra { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--fondo2); flex-wrap: wrap; }
+  .barra .titulo { font-weight: 800; font-size: 17px; margin-right: auto; display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .barra .titulo small { color: var(--gris); font-weight: 400; }
+  .barra button { padding: 9px 13px; border-radius: 10px; background: rgba(255,255,255,.08); font-weight: 700; font-size: 15px; white-space: nowrap; }
+  .barra .sig { background: var(--ambar); color: #1B1406; }
+  .puntos { display: flex; gap: 5px; }
+  .puntos i { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,.2); }
+  .puntos i.si { background: var(--ambar); }
+  .escena { flex: 1; display: flex; min-height: 0; }
+  .marco { flex: 1; min-width: 0; background: #fff; }
+  .marco iframe, .marco video { width: 100%; height: 100%; border: 0; display: block; background: #000; }
+  .notas { width: 330px; flex: none; background: var(--fondo2); padding: 18px; overflow-y: auto; line-height: 1.55; border-left: 1px solid rgba(255,255,255,.06); }
+  .notas h3 { margin: 0 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--ambar); }
+  .notas p { margin: 0 0 16px; }
+  .notas ol { margin: 0 0 16px; padding-left: 20px; }
+  .notas li { margin-bottom: 6px; }
+  .notas .frase { background: rgba(224,154,43,.12); border-left: 3px solid var(--ambar); padding: 10px 12px; border-radius: 8px; font-style: italic; }
+  .sin-notas .notas { display: none; }
+  .falta { color: #333; padding: 40px; text-align: center; line-height: 1.6; font-family: inherit; }
+
+  /* Final */
+  .final { position: fixed; inset: 0; display: grid; place-items: center; padding: 24px; background: radial-gradient(circle at 50% 30%, #253A63, var(--fondo)); text-align: center; }
+  .final .caja { max-width: 620px; }
+  .final h1 { font-size: 44px; margin: 0 0 12px; }
+  .final p { font-size: 19px; color: var(--claro); line-height: 1.55; margin: 0 0 14px; }
+  .final ul { text-align: left; display: inline-block; font-size: 18px; line-height: 1.7; margin: 6px 0 22px; padding-left: 22px; }
+  .final .botones { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .final .otro { background: rgba(255,255,255,.1); border-radius: 14px; padding: 15px 22px; font-weight: 700; }
+
+  @media (max-width: 860px) {
+    .notas { position: absolute; right: 0; bottom: 0; width: 100%; max-height: 42%; border-left: 0; border-top: 1px solid rgba(255,255,255,.1); }
+    .escena { position: relative; }
+    .portada h1 { font-size: 32px; }
+  }
+</style>
+</head>
+<body>
+<section id="portada" class="portada">
+  <div class="logo">🧭</div>
+  <h1>Lo que tenemos hecho</h1>
+  <p class="lema">Seis cosas que ya funcionan, en 5 minutos. Todo se puede tocar: pulsa los botones como si fueran apps de verdad.</p>
+  <button class="empezar" id="empezar">▶ Empezar la demostración</button>
+  <button class="empezar oculto" id="instalar" style="background:rgba(255,255,255,.12);color:inherit;margin-left:6px">📲 Instalar app</button>
+  <div class="rejilla" id="rejilla"></div>
+</section>
+
+<section id="visor" class="visor oculto">
+  <div class="barra">
+    <div class="titulo"><span id="v-ico"></span><span id="v-titulo"></span><small id="v-paso"></small></div>
+    <div class="puntos" id="puntos"></div>
+    <button id="b-notas" title="Enseñar u ocultar lo que tienes que decir">📝 Notas</button>
+    <button id="b-inicio">☰ Todas</button>
+    <button id="b-atras">← Atrás</button>
+    <button id="b-sig" class="sig">Siguiente →</button>
+  </div>
+  <div class="escena">
+    <div class="marco" id="marco"></div>
+    <aside class="notas" id="notas"></aside>
+  </div>
+</section>
+
+<section id="final" class="final oculto">
+  <div class="caja">
+    <h1>¿Te apuntas? 🙌</h1>
+    <p>Programar ya lo tengo cubierto. Lo que me falta son <b>personas</b> que:</p>
+    <ul>
+      <li>📱 prueben las apps en el móvil y digan qué no se entiende,</li>
+      <li>📣 pasen las encuestas a gente real,</li>
+      <li>💬 den su opinión sincera, aunque sea «esto no lo usaría nadie».</li>
+    </ul>
+    <p>Tendrías tu sitio en el centro de mando, con tus tareas explicadas. Sin compromiso: prueba una y decides.</p>
+    <div class="botones"><button class="empezar" id="b-otra">↺ Ver otra vez</button><button class="otro" id="b-volver">☰ Volver a todas</button></div>
+  </div>
+</section>
+
+<script>
+// Cada demostración: el archivo de Descargas que enseña (en la misma carpeta que esta página),
+// qué es, qué tocar y la frase para decir. Los nombres de archivo deben coincidir con los de Descargas.
+const DEMOS = [
+  { ico: "🧭", titulo: "Centro de mando", archivo: "centro-mando.html", extra: "?demo&visita",
+    que: "Desde aquí llevo toda la empresa: ideas, tareas, clientes, dinero y el equipo.",
+    tocar: ["Sigue la visita guiada con «Siguiente →» (abajo).", "Fíjate en el paso 7: así lo verías tú si entras en el equipo."],
+    frase: "Esto es lo que usaríamos para organizarnos: tú tendrías tu propio código." },
+  { ico: "🔧", titulo: "Manitu", archivo: "manitu.html",
+    que: "Para quien hace trabajos en casas (como mi padre): apunta los tickets y le dice cuánto cobrar para no perder dinero.",
+    tocar: ["En el móvil de la izquierda, el que trabaja: mira su semana.", "En el de la derecha, la clienta (Ana) habla por WhatsApp con el asistente.", "Lo que haces en uno aparece en el otro."],
+    frase: "Mucha gente que hace chapuces cobra de menos sin darse cuenta." },
+  { ico: "☀️", titulo: "Buenos Días, Abuela", archivo: "abuela.html",
+    que: "Cada mañana, los abuelos que viven solos reciben un «buenos días» con la voz de sus nietos. Si no contestan, la familia se entera.",
+    tocar: ["Haz el alta guiada: elige cómo le llega (WhatsApp o llamada).", "Mira el móvil de la abuela y el del hijo.", "En «Turnos», si un hermano no puede, pasa al siguiente."],
+    frase: "Es para que ningún abuelo pase un día entero sin que nadie sepa de él." },
+  { ico: "🎞️", titulo: "Mi Baúl de los Recuerdos", archivo: "mi-baul.mp4", video: true,
+    que: "Las fotos antiguas de la familia, arregladas, en color y contadas con la voz del abuelo. Esto lo hizo el ordenador solo, a partir de fotos viejas.",
+    tocar: ["Dale al ▶ y mira el vídeo (1 minuto).", "Las fotos eran en blanco y negro y estaban borrosas."],
+    frase: "Las fotos de las cajas que ya nadie sabe quién sale: así no se pierden." },
+  { ico: "✂️", titulo: "Touless (peluquerías)", archivo: "touless.html",
+    que: "La app para una peluquería: la dueña, las empleadas y las clientas, que reservan en 4 toques.",
+    tocar: ["Reserva una cita como si fueras Marta, la clienta.", "Pulsa «No puedo ir»: el hueco se lo ofrece a otra clienta de la lista de espera."],
+    frase: "Los plantones les cuestan dinero a las peluquerías: esto los evita." },
+  { ico: "🚗", titulo: "Inventario de piezas", archivo: "piezas.html",
+    que: "Para una tienda de piezas de coche: buscar por el coche del cliente, saber dónde está la pieza y mandarla por WhatsApp con foto.",
+    tocar: ["Busca «ibiza».", "Abre una pieza y pulsa «Mandar por WhatsApp».", "Mira «Paradas»: las que llevan meses sin venderse."],
+    frase: "Esto es para una clienta de verdad, con la que estoy hablando." }
+];
+
+const $ = (s) => document.querySelector(s);
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+let actual = -1, conNotas = window.innerWidth > 860;   // en el móvil, las notas empiezan escondidas
+
+$("#rejilla").innerHTML = DEMOS.map((d, i) =>
+  '<button class="tarjeta" data-abrir="' + i + '"><span class="ico">' + d.ico + '</span><b><span class="num">' + (i + 1) + "</span>" + esc(d.titulo) + "</b><span>" + esc(d.que) + "</span><small>" + (d.video ? "▶ Ver el vídeo" : "▶ Tocarlo") + "</small></button>").join("");
+
+function mostrar(i) {
+  actual = i;
+  ["portada", "visor", "final"].forEach((id) => $("#" + id).classList.add("oculto"));
+  if (i < 0) { $("#portada").classList.remove("oculto"); $("#marco").innerHTML = ""; return; }
+  if (i >= DEMOS.length) { $("#final").classList.remove("oculto"); $("#marco").innerHTML = ""; return; }
+  const d = DEMOS[i];
+  $("#visor").classList.remove("oculto");
+  $("#visor").classList.toggle("sin-notas", !conNotas);
+  $("#v-ico").textContent = d.ico;
+  $("#v-titulo").textContent = d.titulo;
+  $("#v-paso").textContent = (i + 1) + " de " + DEMOS.length;
+  $("#puntos").innerHTML = DEMOS.map((x, k) => '<i class="' + (k <= i ? "si" : "") + '"></i>').join("");
+  $("#b-atras").disabled = i === 0;
+  $("#b-sig").textContent = i === DEMOS.length - 1 ? "Terminar →" : "Siguiente →";
+  const src = encodeURI(d.archivo) + (d.extra || "");
+  $("#marco").innerHTML = d.video
+    ? '<video src="' + src + '" controls playsinline></video>'
+    : '<iframe src="' + src + '" title="' + esc(d.titulo) + '"></iframe>';
+  const medio = $("#marco").firstChild;
+  medio.addEventListener("error", () => {
+    $("#marco").innerHTML = '<div class="falta">No encuentro «' + esc(d.archivo) + '».<br>Esta página tiene que estar en la misma carpeta (Descargas) que las demostraciones.</div>';
+  });
+  $("#notas").innerHTML = "<h3>Qué es</h3><p>" + esc(d.que) + "</p><h3>Qué tocar</h3><ol>" + d.tocar.map((t) => "<li>" + esc(t) + "</li>").join("") +
+    '</ol><h3>Lo que puedes decir</h3><p class="frase">«' + esc(d.frase) + "»</p>";
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-abrir]");
+  if (b) mostrar(Number(b.dataset.abrir));
+});
+$("#empezar").onclick = () => mostrar(0);
+$("#b-sig").onclick = () => mostrar(actual + 1);
+$("#b-atras").onclick = () => mostrar(Math.max(0, actual - 1));
+$("#b-inicio").onclick = () => mostrar(-1);
+$("#b-otra").onclick = () => mostrar(0);
+$("#b-volver").onclick = () => mostrar(-1);
+$("#b-notas").onclick = () => { conNotas = !conNotas; $("#visor").classList.toggle("sin-notas", !conNotas); };
+// Instalar como app (Android/Chrome) y explicación para iPhone
+let avisoInstalar = null;
+const yaInstalada = () => (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); avisoInstalar = e; $("#instalar").classList.remove("oculto"); });
+if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !yaInstalada()) $("#instalar").classList.remove("oculto");
+$("#instalar").onclick = () => {
+  if (avisoInstalar) { avisoInstalar.prompt(); avisoInstalar.userChoice.finally(() => { avisoInstalar = null; $("#instalar").classList.add("oculto"); }); }
+  else alert("En iPhone: pulsa Compartir ⬆️ y luego «Añadir a pantalla de inicio».");
+};
+if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+
+document.addEventListener("keydown", (e) => {
+  if (actual < 0 || e.target.closest && e.target.closest("input, textarea")) return;
+  if (e.key === "Escape") mostrar(-1);
+});
+</script>
+</body>
+</html>

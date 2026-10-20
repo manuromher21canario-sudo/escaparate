@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buenos días, abuela · Prototipo 2.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root { --malva:#8a4b6e; --malva-osc:#6a3854; --rosa:#f7e8f0; --verde:#2e7d4f; --menta:#dcf1e4; --ambar:#fff1d6; --rojo:#c0392b;
+          --fondo:#f3eef1; --texto:#1f2430; --suave:#667085; --borde:#e6dde2; --wa:#e9e2d8; --baul:#f3ebff; }
+  @media (prefers-color-scheme: dark) { :root { --fondo:#18151a; } .cab h1 { color:#e2a7c6 !important; } .cab p, .etiqueta small, .nota-proto { color:#b9aeb4 !important; } .etiqueta { color:#f3eef1; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--fondo); color:var(--texto); font:15px/1.4 "Nunito", system-ui, sans-serif; }
+  .cab { max-width:1200px; margin:0 auto; padding:16px 16px 4px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  .cab h1 { margin:0; font-size:24px; font-weight:900; color:var(--malva); }
+  .cab p { margin:0; color:var(--suave); font-size:14px; }
+  .reloj { margin-left:auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .reloj .dia { font-weight:900; background:#fff; border-radius:999px; padding:7px 14px; border:1px solid var(--borde); }
+  .reloj button { font:inherit; font-weight:800; border:1px solid var(--borde); background:#fff; border-radius:999px; padding:7px 14px; cursor:pointer; }
+  .reloj button.prin { background:var(--malva); color:#fff; border-color:var(--malva); }
+  .reloj button:disabled { opacity:.45; cursor:default; }
+  .elegir { display:none; max-width:1200px; margin:6px auto 0; padding:0 16px; gap:6px; }
+  .elegir button { flex:1; font:inherit; font-weight:800; border:1px solid var(--borde); background:#fff; border-radius:12px; padding:8px 4px; cursor:pointer; font-size:13px; }
+  .elegir button.activo { background:var(--malva); border-color:var(--malva); color:#fff; }
+  .escena { max-width:1200px; margin:0 auto; padding:12px 16px 20px; display:flex; gap:22px; justify-content:center; align-items:flex-start; }
+  .lado { display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .etiqueta { font-weight:900; font-size:15px; text-align:center; }
+  .etiqueta small { display:block; font-weight:600; color:var(--suave); font-size:12px; }
+  .movil { width:340px; height:690px; border-radius:42px; background:#111; padding:11px; box-shadow:0 20px 46px rgba(0,0,0,.25); }
+  .pantalla { width:100%; height:100%; border-radius:32px; overflow:hidden; background:#fff; display:flex; flex-direction:column; position:relative; }
+  @media (max-width:1120px) { .elegir { display:flex; } .lado.oculto { display:none; } .movil { width:min(340px, calc(100vw - 32px)); } }
+  /* — La abuela: todo GRANDE — */
+  .abuela { background:#fffaf5; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:22px; gap:16px; }
+  .abuela .hora { font-size:54px; font-weight:900; } .abuela .fecha { font-size:22px; color:var(--suave); margin-top:-12px; }
+  .abuela .cara { width:116px; height:116px; border-radius:50%; background:var(--rosa); display:flex; align-items:center; justify-content:center; font-size:62px; }
+  .abuela .quien { font-size:27px; font-weight:900; line-height:1.15; }
+  .abuela .dice { font-size:23px; line-height:1.3; background:var(--rosa); border-radius:18px; padding:14px 16px; }
+  .gordo { font:inherit; font-size:25px; font-weight:900; border:0; border-radius:22px; padding:18px; width:100%; cursor:pointer; color:#fff; background:var(--verde); }
+  .gordo.malva { background:var(--malva); } .gordo.claro { background:#efe6eb; color:var(--malva-osc); font-size:21px; padding:14px; }
+  .gordo.gris { background:#e7e2e5; color:#555; font-size:16px; padding:10px; }
+  /* — Grupo (WhatsApp) — */
+  .barra-wa { background:#075e54; color:#fff; padding:15px 14px 10px; display:flex; align-items:center; gap:10px; }
+  .barra-wa .ic { width:34px; height:34px; border-radius:50%; background:#cfd8dc; display:flex; align-items:center; justify-content:center; font-size:18px; }
+  .barra-wa b { font-size:15px; } .barra-wa small { display:block; opacity:.8; font-size:12px; }
+  .chat { flex:1; overflow-y:auto; padding:10px; display:flex; flex-direction:column; gap:7px; background:var(--wa); }
+  .m { max-width:88%; padding:7px 10px; border-radius:10px; font-size:14px; background:#fff; box-shadow:0 1px 0 rgba(0,0,0,.08); }
+  .m.yo { align-self:flex-end; background:#d5f5c6; }
+  .m.dia { align-self:center; background:#e1f0f7; font-size:12px; font-weight:800; color:#3d5a6b; }
+  .m.sis { align-self:center; background:#fff7d6; font-size:12px; color:#6b5a00; text-align:center; }
+  .m.alerta { background:#fff3e0; border-left:4px solid #e08a2c; }
+  .m.baul { background:var(--baul); border-left:4px solid #6b4bb3; }
+  .m .de { display:block; font-size:12px; font-weight:800; color:var(--malva); }
+  .m small { display:block; font-size:11px; color:#7a8a80; margin-top:2px; }
+  .respuestas { padding:8px; background:#f0f0f0; display:flex; flex-direction:column; gap:6px; border-top:1px solid #ddd; }
+  .respuestas button { font:inherit; font-weight:800; border:0; border-radius:20px; padding:9px 12px; background:#fff; color:#075e54; cursor:pointer; text-align:left; }
+  .respuestas .espera { color:var(--suave); font-size:13px; text-align:center; padding:4px; }
+  /* — App de la familia — */
+  .barra-app { background:var(--malva); color:#fff; padding:15px 14px 11px; } .barra-app b { font-size:17px; font-weight:900; } .barra-app small { display:block; opacity:.85; font-size:12px; }
+  .contenido { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:10px; background:#faf7f9; }
+  .tabs { display:flex; background:#fff; border-top:1px solid var(--borde); }
+  .tabs button { flex:1; font:inherit; font-size:12px; font-weight:800; border:0; background:none; padding:7px 2px 10px; color:var(--suave); cursor:pointer; }
+  .tabs button span { display:block; font-size:19px; } .tabs button.activa { color:var(--malva); }
+  .caja { background:#fff; border:1px solid var(--borde); border-radius:14px; padding:12px; }
+  .caja h3 { margin:0 0 8px; font-size:15px; font-weight:900; }
+  .campo { display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:14px; margin:6px 0; }
+  .campo select { font:inherit; border:1px solid var(--borde); border-radius:8px; padding:4px 6px; max-width:165px; }
+  .turnos { display:flex; flex-direction:column; gap:5px; }
+  .turno { display:flex; justify-content:space-between; align-items:center; gap:6px; font-size:14px; padding:6px 8px; border-radius:10px; background:#f7f2f5; }
+  .turno.hoy { outline:2px solid var(--malva); }
+  .barras { display:flex; flex-direction:column; gap:6px; }
+  .barra { display:flex; align-items:center; gap:8px; font-size:13px; } .barra span:first-child { width:62px; }
+  .barra .llena { height:12px; border-radius:6px; background:var(--malva); }
+  .semana-ab { display:flex; gap:4px; } .semana-ab div { flex:1; text-align:center; border-radius:8px; padding:5px 0; font-size:12px; background:#f3eef1; }
+  .semana-ab .si { background:var(--menta); } .semana-ab .no { background:#fde8e6; }
+  .btn { font:inherit; font-weight:800; border:0; border-radius:10px; padding:9px 12px; cursor:pointer; background:var(--malva); color:#fff; }
+  .btn.sec { background:#f1e6ec; color:var(--malva-osc); } .btn.peq { padding:5px 9px; font-size:12px; }
+  .btn:disabled { opacity:.45; cursor:default; }
+  .ancho { width:100%; }
+  .opcion { text-align:left; font:inherit; background:#fff; border:1.5px solid var(--borde); border-radius:14px; padding:12px; cursor:pointer; }
+  .opcion.on { border-color:var(--malva); box-shadow:0 0 0 2px var(--rosa); }
+  .opcion b { display:block; font-size:15px; } .opcion small { color:var(--suave); }
+  .pasos { display:flex; gap:4px; } .pasos i { flex:1; height:4px; border-radius:2px; background:#eadde4; } .pasos i.on { background:var(--malva); }
+  .voz { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f1eaee; }
+  .check { display:flex; gap:8px; align-items:flex-start; font-size:14px; margin:8px 0; }
+  .estado-hoy { border-radius:14px; padding:12px; font-size:14px; }
+  .estado-hoy.ok { background:var(--menta); } .estado-hoy.esp { background:#f3eef1; } .estado-hoy.mal { background:#fff3e0; }
+  .estado-hoy b { display:block; font-size:16px; margin-bottom:2px; }
+  .recuerdo { background:var(--baul); border-radius:12px; padding:10px; font-size:14px; }
+  .recuerdo .q { font-weight:800; } .recuerdo .r { font-style:italic; margin:4px 0; }
+  .sugerido { font-size:13px; color:var(--suave); margin:4px 0 0; }
+  .vacio { color:var(--suave); text-align:center; padding:24px 8px; font-size:14px; }
+  .nota-proto { max-width:1200px; margin:0 auto; padding:0 16px 24px; color:var(--suave); font-size:13px; text-align:center; }
+</style>
+</head>
+<body>
+<div class="cab">
+  <div style="font-size:40px">☀️</div>
+  <div><h1>Buenos días, abuela · prototipo 2.0</h1><p>Empieza dando de alta a la abuela en el móvil de Antonio. Luego, «Siguiente día» para vivir una semana.</p></div>
+  <div class="reloj">
+    <span class="dia" id="dia"></span>
+    <button id="pasa-hora">⏩ Pasa 1 hora</button>
+    <button id="siguiente" class="prin">☀️ Siguiente día</button>
+    <button id="deshacer" disabled>↩ Deshacer</button>
+    <button id="reiniciar">⟲ Empezar</button>
+  </div>
+</div>
+<div class="elegir"><button data-ver="pa" class="activo">📱 Antonio</button><button data-ver="ab">👵 La abuela</button><button data-ver="fa">👨‍👩‍👧 El grupo</button></div>
+<div class="escena">
+  <div class="lado" id="lado-pa"><div class="etiqueta">📱 La app de Antonio<small>el hijo que lo organiza</small></div><div class="movil"><div class="pantalla" id="app-pa"></div></div></div>
+  <div class="lado" id="lado-ab"><div class="etiqueta">👵 El móvil de la abuela Lola<small>todo grande, casi sin botones</small></div><div class="movil"><div class="pantalla" id="app-ab"></div></div></div>
+  <div class="lado" id="lado-fa"><div class="etiqueta">👨‍👩‍👧 El grupo de los hermanos<small>su WhatsApp de siempre</small></div><div class="movil"><div class="pantalla" id="app-fa"></div></div></div>
+</div>
+<p class="nota-proto">Prototipo con datos de ejemplo: nada se envía de verdad. No es un servicio médico ni de emergencias.</p>
+
+<script>
+const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+const HERMANOS = ["Antonio", "Ana", "Pedro"];
+const NIETOS = [["Lucía", "👧"], ["Pablo", "👦"]];
+const SALUDOS = ["¡Buenos días, abuela! ¿Qué tal has dormido?", "¡Buenos días, abuela! ¿Qué vas a hacer hoy?"];
+const RECUERDOS = ["Abuela, ¿cómo conociste al abuelo?", "Abuela, ¿cuál era tu juego favorito de pequeña?", "Abuela, ¿cómo era tu casa cuando eras niña?"];
+const SUGERENCIAS = ["Abuela, ¿qué canción bailabas de joven?", "Abuela, ¿cómo era tu escuela?", "Abuela, ¿qué comida te hacía tu madre?"];
+const RESPUESTAS = ["Muy bien, mi niña. Hoy voy a ir a la plaza con Carmela.", "Ay, en las fiestas del pueblo, bailando. Él no sabía bailar nada…", "",
+  "Bien, bien. Ayer vino Ana y me trajo flores.", "Jugábamos a la piola en la calle hasta que oscurecía.", "Hoy vienen los nietos a comer, estoy contentísima.", "Descansando, que ayer fue mucho jaleo."];
+const PRECIOS = { whatsapp: "~3 €/mes", llamada: "~7 €/mes" };
+
+function inicial() {
+  return { alta: { paso: 0, modo: null, voces: { "Lucía": false, Pablo: false }, permiso: false, medico: false, hecha: false },
+           dia: 0, fase: "espera", hoy: null, chat: [], contesto: [], visitas: { Antonio: 0, Ana: 0, Pedro: 0 },
+           recuerdos: [], cola: [], cambios: {}, llamadas: 0,
+           ajustes: { hora: "9:30", espera: "1 hora", preguntas: "mezcla", voces: "ambos" } };
+}
+let S = inicial(), pila = [];
+const ui = { ver: "pa", tab: "hoy" };
+try { const g = JSON.parse(localStorage.getItem("abuela-proto-2")); if (g) S = g; } catch (e) {}
+
+function hacer(f) { pila.push(JSON.stringify(S)); f(); try { localStorage.setItem("abuela-proto-2", JSON.stringify(S)); } catch (e) {} pintar(); }
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const turnoDe = d => S.cambios[d] || HERMANOS[d % HERMANOS.length];
+const vocesOk = () => NIETOS.filter(([n]) => S.alta.voces[n]);
+function nietoDe(d) {
+  const v = vocesOk().length ? vocesOk() : NIETOS;
+  if (S.ajustes.voces === "lucia" && S.alta.voces["Lucía"]) return NIETOS[0];
+  if (S.ajustes.voces === "pablo" && S.alta.voces.Pablo) return NIETOS[1];
+  return v[d % v.length];
+}
+const esRecuerdo = d => S.ajustes.preguntas === "recuerdos" || (S.ajustes.preguntas === "mezcla" && d % 3 === 1);
+function msg(t, txt, de) { S.chat.push({ t, txt, de }); }
+const movil = () => window.innerWidth <= 1120;
+
+// ═══ La app de Antonio ═══
+function pintarApp() {
+  const el = document.getElementById("app-pa");
+  if (!S.alta.hecha) { el.innerHTML = `<div class="barra-app"><b>☀️ Buenos días, abuela</b><small>Primeros pasos</small></div><div class="contenido">${vistaAlta()}</div>`; return; }
+  const tabs = [["hoy", "☀️", "Hoy"], ["recuerdos", "📦", "Recuerdos"], ["turnos", "🔁", "Turnos"], ["ajustes", "⚙️", "Ajustes"]];
+  const vista = { hoy: vistaHoy, recuerdos: vistaRecuerdos, turnos: vistaTurnos, ajustes: vistaAjustes }[ui.tab]();
+  el.innerHTML = `<div class="barra-app"><b>☀️ Buenos días, abuela</b><small>Antonio · cuidando a la abuela Lola</small></div>
+    <div class="contenido">${vista}</div>
+    <div class="tabs">${tabs.map(([id, ic, n]) => `<button data-tab="${id}" class="${ui.tab === id ? "activa" : ""}"><span>${ic}</span>${n}</button>`).join("")}</div>`;
+}
+function vistaAlta() {
+  const a = S.alta, p = a.paso;
+  const barra = `<div class="pasos">${[0, 1, 2, 3, 4].map(i => `<i class="${i <= p ? "on" : ""}"></i>`).join("")}</div>`;
+  if (p === 0) return `${barra}<div class="caja"><h3>Vamos a cuidar a…</h3><p style="margin:0;font-size:22px;font-weight:900">👵 Lola, tu madre</p>
+    <p class="sugerido">Cada mañana oirá la voz de un nieto. Ella contesta hablando y los hermanos reciben un resumen.</p></div>
+    <button class="btn ancho" data-alta="empezar">Empezar</button>`;
+  if (p === 1) return `${barra}<h3 style="margin:0">¿Cómo le llega a la abuela?</h3>
+    <button class="opcion ${a.modo === "whatsapp" ? "on" : ""}" data-modo="whatsapp"><b>💬 Un audio por WhatsApp</b><small>Si ya usa WhatsApp. Lo más barato: ${PRECIOS.whatsapp}.</small></button>
+    <button class="opcion ${a.modo === "llamada" ? "on" : ""}" data-modo="llamada"><b>📞 Una llamada de teléfono</b><small>Si no se apaña con el móvil: suena y contesta, como siempre. ${PRECIOS.llamada}.</small></button>
+    <button class="btn ancho" data-alta="siguiente" ${a.modo ? "" : "disabled"}>Siguiente</button>`;
+  if (p === 2) return `${barra}<div class="caja"><h3>Las voces de los nietos</h3><p class="sugerido" style="margin:0 0 6px">Cada nieto graba una vez sus saludos. Así la abuela oye a quien quiere, no a una máquina.</p>
+    ${NIETOS.map(([n, c]) => `<div class="voz"><span>${c} ${n}</span>${a.voces[n] ? '<b style="color:var(--verde)">✓ Grabada</b>' : `<button class="btn peq" data-grabar="${n}">🎙️ Grabar</button>`}</div>`).join("")}</div>
+    <button class="btn ancho" data-alta="siguiente" ${vocesOk().length ? "" : "disabled"}>Siguiente</button>`;
+  if (p === 3) return `${barra}<div class="caja"><h3>Los hermanos</h3>${HERMANOS.map((h, i) => `<div class="voz"><span>${h}${i === 0 ? " (tú)" : ""}</span><small>${DIAS[i]}, ${DIAS[i + 3]}${i === 0 ? ", " + DIAS[6] : ""}</small></div>`).join("")}
+    <p class="sugerido">Se turnan cada día. Si la abuela no contesta, se avisa a quien le toca. Cualquiera puede cambiar su día.</p></div>
+    <button class="btn ancho" data-alta="siguiente">Siguiente</button>`;
+  return `${barra}<div class="caja"><h3>Lo más importante</h3>
+    <label class="check"><input type="checkbox" data-permiso="permiso" ${a.permiso ? "checked" : ""}> Mi madre sabe que la vamos a llamar cada mañana y está de acuerdo. Su voz y lo que cuenta solo lo ve la familia.</label>
+    <label class="check"><input type="checkbox" data-permiso="medico" ${a.medico ? "checked" : ""}> Entiendo que esto no es un servicio médico ni de emergencias (para eso, la teleasistencia y el 112).</label></div>
+    <button class="btn ancho" data-alta="terminar" ${a.permiso && a.medico ? "" : "disabled"}>¡Empezar mañana a las ${S.ajustes.hora}!</button>`;
+}
+function vistaHoy() {
+  const d = S.dia, f = S.fase, [nieto] = nietoDe(d);
+  let estado;
+  if (f === "contestado") estado = `<div class="estado-hoy ok"><b>☀️ Contestó a las ${S.ajustes.hora.replace(":30", ":34").replace(":00", ":04")}</b>«${esc(RESPUESTAS[d % 7])}»</div>`;
+  else if (f === "aviso") estado = `<div class="estado-hoy mal"><b>⚠️ No ha contestado</b>Hoy le toca a ${turnoDe(d)} llamarla.</div>`;
+  else if (f === "resuelto") estado = `<div class="estado-hoy ok"><b>✅ Resuelto</b>${turnoDe(d)} habló con ella. Está bien.</div>`;
+  else if (f === "sin-contestar") estado = `<div class="estado-hoy esp"><b>⏳ Todavía no contesta</b>Si en ${S.ajustes.espera} no contesta, se avisa a ${turnoDe(d)}.</div>`;
+  else estado = `<div class="estado-hoy esp"><b>🕘 Hoy a las ${S.ajustes.hora}</b>${nieto} le dará los buenos días por ${S.alta.modo === "llamada" ? "teléfono" : "WhatsApp"}.</div>`;
+  const semana = DIAS.map((n, i) => { const r = S.contesto[i]; return `<div class="${r === true ? "si" : r === false ? "no" : ""}">${n.slice(0, 2)}<br>${r === true ? "✓" : r === false ? "✗" : "·"}</div>`; }).join("");
+  return `${estado}
+    <div class="caja"><h3>Esta semana</h3><div class="semana-ab">${semana}</div><p class="sugerido">✓ contestó · ✗ no contestó (y alguien la llamó)</p></div>
+    <div class="caja"><h3>Hoy le toca a</h3><p style="margin:0;font-size:18px;font-weight:900">${turnoDe(d)}</p></div>
+    ${S.llamadas ? `<div class="caja">📞 La abuela te ha llamado ${S.llamadas} ${S.llamadas === 1 ? "vez" : "veces"} desde su botón.</div>` : ""}`;
+}
+function vistaRecuerdos() {
+  const lista = S.recuerdos.length ? S.recuerdos.slice().reverse().map((r, i) => {
+    const idx = S.recuerdos.length - 1 - i;
+    return `<div class="recuerdo"><div class="q">${esc(r.pregunta)}</div><div class="r">«${esc(r.respuesta)}»</div>
+      <small>${DIAS[r.dia]} · con su voz · le preguntó ${r.nieto}</small><br>
+      ${r.baul ? '<b style="color:#6b4bb3;font-size:13px">📦 Guardado en Mi Baúl ✓</b>' : `<button class="btn peq sec" data-baul="${idx}">📦 Guardar en Mi Baúl</button>`}</div>`;
+  }).join("") : '<div class="vacio">Aquí se irán guardando las historias que cuente la abuela, con su voz.</div>';
+  const libres = SUGERENCIAS.filter(s => !S.cola.includes(s) && !S.recuerdos.some(r => r.pregunta === s));
+  return `${lista}
+    <div class="caja"><h3>➕ Proponer una pregunta</h3>
+      ${S.cola.length ? `<p class="sugerido" style="margin:0 0 6px">En cola: ${S.cola.map(esc).join(" · ")}</p>` : ""}
+      ${libres.map(s => `<button class="btn peq sec" style="margin:3px 0;text-align:left" data-proponer="${esc(s)}">${esc(s)}</button>`).join("") || '<p class="sugerido">Ya has propuesto todas las de ejemplo.</p>'}
+      <p class="sugerido">El próximo día de recuerdos, el nieto se la hará con su voz.</p></div>`;
+}
+function vistaTurnos() {
+  const max = Math.max(1, ...Object.values(S.visitas));
+  return `<div class="caja"><h3>A quién le toca cada día</h3><div class="turnos">${DIAS.map((n, i) => `<div class="turno ${i === S.dia ? "hoy" : ""}">
+      <span><b>${n}</b> · ${turnoDe(i)}</span>${i > S.dia ? `<button class="btn peq sec" data-nopuedo="${i}">No puedo</button>` : i === S.dia ? "<small>hoy</small>" : "<small>pasado</small>"}</div>`).join("")}</div>
+      <p class="sugerido">«No puedo» le pasa el día al siguiente hermano y se avisa en el grupo. Se puede deshacer.</p></div>
+    <div class="caja"><h3>Visitas este mes</h3><div class="barras">${HERMANOS.map(h => `<div class="barra"><span>${h}</span><div class="llena" style="width:${Math.max(4, S.visitas[h] / max * 150)}px"></div><span>${S.visitas[h]}</span></div>`).join("")}</div></div>`;
+}
+function vistaAjustes() {
+  const aj = S.ajustes;
+  const sel = (id, ops) => `<select data-aj="${id}">${ops.map(([v, n]) => `<option value="${v}" ${aj[id] === v ? "selected" : ""}>${n}</option>`).join("")}</select>`;
+  return `<div class="caja"><h3>La llamada</h3>
+      <div class="campo">Cómo le llega <select data-modo-aj="1"><option value="whatsapp" ${S.alta.modo === "whatsapp" ? "selected" : ""}>Audio de WhatsApp</option><option value="llamada" ${S.alta.modo === "llamada" ? "selected" : ""}>Llamada de teléfono</option></select></div>
+      <div class="campo">Hora ${sel("hora", [["9:00", "9:00"], ["9:30", "9:30"], ["10:30", "10:30"], ["12:00", "12:00"]])}</div>
+      <div class="campo">Avisar si no contesta en ${sel("espera", [["30 min", "30 min"], ["1 hora", "1 hora"], ["2 horas", "2 horas"]])}</div>
+      <div class="campo">Qué le pregunta ${sel("preguntas", [["saludo", "Solo saludo"], ["mezcla", "Saludo y recuerdos"], ["recuerdos", "Siempre recuerdos"]])}</div>
+      <div class="campo">Voz ${sel("voces", [["ambos", "Lucía y Pablo"], ["lucia", "Solo Lucía"], ["pablo", "Solo Pablo"]])}</div>
+      <p class="sugerido">Precio: ${PRECIOS[S.alta.modo]} (${S.alta.modo === "llamada" ? "las llamadas a móvil cuestan más" : "el modo más barato"}). Se paga por lo que se usa.</p></div>
+    <div class="caja"><h3>Permiso</h3><p style="margin:0;font-size:14px">✓ Lola está de acuerdo · ✓ No es un servicio médico</p>
+      <p class="sugerido">Cualquier hermano puede pedir pararlo o borrar sus grabaciones.</p></div>`;
+}
+
+// ═══ La abuela ═══
+function pintarAbuela() {
+  const el = document.getElementById("app-ab");
+  if (!S.alta.hecha) { el.innerHTML = `<div class="abuela"><div class="cara">📱</div><div class="quien">Todavía sin configurar</div><div class="dice" style="font-size:18px">Antonio lo está preparando en su móvil.</div></div>`; return; }
+  const d = S.dia, [nieto, cara] = nietoDe(d), tel = S.alta.modo === "llamada";
+  const llamarHijo = `<button class="gordo claro" data-ab="llamar-hijo">📞 Llamar a Antonio</button>`;
+  let html;
+  if (S.fase === "espera") html = `<div class="hora">${S.ajustes.hora}</div><div class="fecha">${DIAS[d]}</div><div class="cara">${cara}</div>
+      <div class="quien">${tel ? nieto + " te está llamando" : "Audio de " + nieto}</div>
+      <button class="gordo" data-ab="escuchar">${tel ? "📞 Contestar" : "▶ Escuchar"}</button>
+      <button class="gordo gris" data-ab="no-coge">(hacer que no lo coge)</button>`;
+  else if (S.fase === "escuchando") html = `<div class="cara">${cara}</div><div class="quien">${nieto}</div><div class="dice">«${esc(S.hoy.txt)}»</div>
+      <button class="gordo malva" data-ab="contestar">🎙️ ${tel ? "Hablar" : "Contestar"}</button>`;
+  else if (S.fase === "contestado") html = `<div class="cara">💛</div><div class="quien">¡Gracias, abuela!</div><div class="dice">${nieto} lo escuchará luego.</div>${llamarHijo}`;
+  else if (S.fase === "sin-contestar" || S.fase === "aviso") html = `<div class="hora">${S.ajustes.hora}</div><div class="fecha">${DIAS[d]}</div><div class="cara">📵</div><div class="quien">${tel ? "Llamada perdida" : "Audio sin escuchar"} de ${nieto}</div>${llamarHijo}`;
+  else html = `<div class="cara">🌷</div><div class="quien">Todo bien</div>${llamarHijo}`;
+  el.innerHTML = `<div class="abuela">${html}</div>`;
+}
+
+// ═══ El grupo ═══
+function pintarGrupo() {
+  const msgs = S.chat.map(m => {
+    if (m.t === "dia") return `<div class="m dia">${esc(m.txt)}</div>`;
+    if (m.t === "sis") return `<div class="m sis">${m.txt}</div>`;
+    const clase = { alerta: "alerta", baul: "baul", yo: "yo" }[m.t] || "";
+    return `<div class="m ${clase}">${m.de ? `<span class="de">${esc(m.de)}</span>` : ""}${m.txt}${m.t !== "yo" ? "<small>Buenos días, abuela</small>" : ""}</div>`;
+  }).join("") || '<div class="m sis">Aquí llegará el resumen de cada mañana.</div>';
+  let botones = `<div class="espera">Los hermanos solo leen; actúan si hace falta.</div>`;
+  if (S.fase === "aviso") { const q = turnoDe(S.dia); botones = `<button data-fa="llamada">📞 ${q}: «La he llamado, está bien»</button><button data-fa="voy">🚗 ${q}: «Voy para allá»</button>`; }
+  document.getElementById("app-fa").innerHTML = `<div class="barra-wa"><div class="ic">👵</div><div><b>Mamá ❤️ (hermanos)</b><small>Antonio, Ana, Pedro y Buenos días, abuela</small></div></div>
+    <div class="chat" id="chat-fa">${msgs}</div><div class="respuestas">${botones}</div>`;
+  const c = document.getElementById("chat-fa"); c.scrollTop = c.scrollHeight;
+}
+
+function pintar() {
+  pintarApp(); pintarAbuela(); pintarGrupo();
+  document.getElementById("dia").textContent = S.alta.hecha ? "📅 " + DIAS[S.dia] + " · " + S.ajustes.hora : "📅 Antes de empezar";
+  document.getElementById("deshacer").disabled = !pila.length;
+  document.getElementById("pasa-hora").disabled = S.fase !== "sin-contestar";
+  document.getElementById("siguiente").disabled = !S.alta.hecha || S.dia >= 6;
+  for (const id of ["pa", "ab", "fa"]) document.getElementById("lado-" + id).classList.toggle("oculto", ui.ver !== id);
+  document.querySelectorAll(".elegir button").forEach(b => b.classList.toggle("activo", b.dataset.ver === ui.ver));
+}
+
+document.addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const d = b.dataset;
+  if (d.ver) { ui.ver = d.ver; pintar(); return; }
+  if (d.tab) { ui.tab = d.tab; pintar(); return; }
+  // — Alta —
+  if (d.alta === "empezar" || d.alta === "siguiente") return hacer(() => { S.alta.paso++; });
+  if (d.modo) return hacer(() => { S.alta.modo = d.modo; });
+  if (d.grabar) return hacer(() => { S.alta.voces[d.grabar] = true; });
+  if (d.alta === "terminar") return hacer(() => {
+    S.alta.hecha = true; S.fase = "espera";
+    msg("sis", `Antonio ha dado de alta a la abuela Lola (${S.alta.modo === "llamada" ? "llamada" : "audio de WhatsApp"} a las ${S.ajustes.hora}).`);
+    msg("dia", DIAS[0]); if (movil()) ui.ver = "ab";
+  });
+  // — La abuela —
+  if (d.ab === "escuchar") return hacer(() => {
+    const rec = esRecuerdo(S.dia);
+    S.hoy = { recuerdo: rec, txt: rec ? (S.cola[0] || RECUERDOS[Math.floor(S.dia / 3) % RECUERDOS.length]) : SALUDOS[S.dia % 2] };
+    S.fase = "escuchando";
+  });
+  if (d.ab === "contestar") return hacer(() => {
+    const resp = RESPUESTAS[S.dia] || "Bien, hijo, todo bien.", [nieto] = nietoDe(S.dia);
+    S.fase = "contestado"; S.contesto[S.dia] = true;
+    msg("resumen", `☀️ Mamá contestó a las ${S.ajustes.hora.replace(":30", ":34").replace(":00", ":04")}.<br>Contó: «${esc(resp)}»`);
+    if (S.hoy.recuerdo) {
+      if (S.cola[0] === S.hoy.txt) S.cola.shift();
+      S.recuerdos.push({ pregunta: S.hoy.txt, respuesta: resp, dia: S.dia, nieto, baul: false });
+      msg("baul", `📦 ${nieto} le preguntó «${esc(S.hoy.txt)}». Su respuesta, con su voz, está en Recuerdos.`);
+    }
+  });
+  if (d.ab === "no-coge") return hacer(() => { S.fase = "sin-contestar"; });
+  if (d.ab === "llamar-hijo") return hacer(() => { S.llamadas++; msg("sis", "📞 La abuela ha llamado a Antonio desde su botón."); });
+  // — El grupo —
+  if (d.fa === "llamada" || d.fa === "voy") return hacer(() => {
+    const q = turnoDe(S.dia);
+    msg("yo", d.fa === "llamada" ? "La he llamado: estaba en el patio y no lo oía. Está bien 👍" : "Voy para allá 🚗", q);
+    if (d.fa === "voy") S.visitas[q]++;
+    msg("resumen", "✅ Resuelto. Gracias, " + q + ".");
+    S.contesto[S.dia] = false; S.fase = "resuelto";
+  });
+  // — La app: recuerdos y turnos —
+  if (d.baul) return hacer(() => { S.recuerdos[Number(d.baul)].baul = true; });
+  if (d.proponer) return hacer(() => { S.cola.push(d.proponer); });
+  if (d.nopuedo) return hacer(() => {
+    const i = Number(d.nopuedo), antes = turnoDe(i), sig = HERMANOS[(HERMANOS.indexOf(antes) + 1) % HERMANOS.length];
+    S.cambios[i] = sig;
+    msg("resumen", `🔁 ${antes} no puede el ${DIAS[i].toLowerCase()}: lo cubre ${sig}.`);
+  });
+});
+document.addEventListener("change", e => {
+  const el = e.target;
+  if (el.dataset.permiso) return hacer(() => { S.alta[el.dataset.permiso] = el.checked; });
+  if (el.dataset.aj) return hacer(() => { S.ajustes[el.dataset.aj] = el.value; });
+  if (el.dataset.modoAj) return hacer(() => { S.alta.modo = el.value; });
+});
+document.getElementById("pasa-hora").onclick = () => hacer(() => {
+  const q = turnoDe(S.dia);
+  S.fase = "aviso";
+  msg("alerta", `⚠️ Mamá no ha contestado desde las ${S.ajustes.hora} (${S.ajustes.espera} esperando).<br><b>Hoy le toca a ${q}:</b> ¿la puedes llamar?`);
+  if (movil()) ui.ver = "fa";
+});
+document.getElementById("siguiente").onclick = () => hacer(() => {
+  S.dia = Math.min(6, S.dia + 1); S.fase = "espera"; S.hoy = null;
+  msg("dia", DIAS[S.dia]);
+  if (S.dia === 6) {
+    const si = S.contesto.filter(x => x === true).length;
+    const menos = HERMANOS.reduce((a, h) => S.visitas[h] < S.visitas[a] ? h : a, HERMANOS[0]);
+    msg("resumen", `📊 <b>Resumen de la semana:</b> contestó ${si} de 6 días. ${S.recuerdos.length} recuerdos nuevos. Visitas: ${HERMANOS.map(h => h + " " + S.visitas[h]).join(", ")}. La próxima visita le toca a <b>${menos}</b>.`);
+  }
+  if (movil()) ui.ver = "ab";
+});
+document.getElementById("deshacer").onclick = () => { if (!pila.length) return; S = JSON.parse(pila.pop()); try { localStorage.setItem("abuela-proto-2", JSON.stringify(S)); } catch (e) {} pintar(); };
+document.getElementById("reiniciar").onclick = () => hacer(() => { S = inicial(); ui.tab = "hoy"; ui.ver = "pa"; });
+pintar();
+</script>
+</body>
+</html>

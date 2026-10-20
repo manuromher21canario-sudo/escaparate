@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manitu · Prototipo</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20rx%3D%2222%22%20fill%3D%22%232e7d4f%22/%3E%3Cpath%20d%3D%22M50%2012%20L88%2044%20H78%20V86%20a4%204%200%200%201%20-4%204%20H26%20a4%204%200%200%201%20-4%20-4%20V44%20H12%20Z%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%225%22%20stroke-linejoin%3D%22round%22/%3E%3Cg%20transform%3D%22translate%2850%2066%29%20rotate%28-45%29%20scale%280.74%29%22%3E%3Crect%20x%3D%22-6.5%22%20y%3D%22-4%22%20width%3D%2213%22%20height%3D%2238%22%20rx%3D%226.5%22%20fill%3D%22%232e7d4f%22/%3E%3Ccircle%20cx%3D%220%22%20cy%3D%22-14%22%20r%3D%2215.5%22%20fill%3D%22%232e7d4f%22/%3E%3Crect%20x%3D%22-6%22%20y%3D%22-35%22%20width%3D%2212%22%20height%3D%2217%22%20rx%3D%222%22%20fill%3D%22%23ffffff%22/%3E%3C/g%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+  :root { --verde:#2e7d4f; --verde-osc:#1f5c39; --menta:#dcf1e4; --ambar:#fff1d6; --ambar-t:#8a5300; --rojo:#c0392b; --rosa:#fde8e6;
+          --fondo:#eef1ee; --tarjeta:#fff; --texto:#1f2430; --suave:#667085; --borde:#e2e6e4; --wa:#e9e2d8; --wa-yo:#d5f5c6; }
+  @media (prefers-color-scheme: dark) { :root { --fondo:#15181b; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--fondo); color:var(--texto); font:15px/1.4 "Nunito", system-ui, sans-serif; }
+  .cab { max-width:900px; margin:0 auto; padding:18px 16px 6px; display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
+  .cab h1 { margin:0; font-size:24px; font-weight:900; color:var(--verde); }
+  .cab p { margin:0; color:var(--suave); font-size:14px; }
+  @media (prefers-color-scheme: dark) { .cab p, .etiqueta small { color:#a7b0ad; } .cab h1 { color:#6fd29a; } .etiqueta { color:#eef1ee; } }
+  .acciones-demo { margin-left:auto; display:flex; gap:8px; }
+  .acciones-demo button { font:inherit; font-weight:800; border:1px solid var(--borde); background:#fff; border-radius:999px; padding:7px 14px; cursor:pointer; }
+  .acciones-demo button:disabled { opacity:.45; cursor:default; }
+  .elegir { display:none; max-width:900px; margin:6px auto 0; padding:0 16px; gap:8px; }
+  .elegir button { flex:1; font:inherit; font-weight:800; border:1px solid var(--borde); background:#fff; border-radius:12px; padding:9px; cursor:pointer; }
+  .elegir button.activo { background:var(--verde); border-color:var(--verde); color:#fff; }
+  .escena { max-width:900px; margin:0 auto; padding:12px 16px 30px; display:flex; gap:34px; justify-content:center; align-items:flex-start; }
+  .lado { display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .etiqueta { font-weight:900; font-size:16px; text-align:center; }
+  .etiqueta small { display:block; font-weight:600; color:var(--suave); font-size:13px; }
+  .movil { width:360px; height:720px; border-radius:44px; background:#111; padding:12px; box-shadow:0 22px 50px rgba(0,0,0,.25); position:relative; }
+  .pantalla { width:100%; height:100%; border-radius:34px; overflow:hidden; background:#f6f8f7; display:flex; flex-direction:column; position:relative; }
+  @media (max-width:820px) {
+    .elegir { display:flex; } .escena { gap:0; } .lado.oculto { display:none; }
+    .movil { width:min(360px, calc(100vw - 32px)); height:680px; }
+  }
+  /* — App del que trabaja — */
+  .barra-app { background:var(--verde); color:#fff; padding:16px 16px 12px; display:flex; align-items:center; gap:10px; }
+  .barra-app b { font-size:18px; font-weight:900; } .barra-app small { display:block; opacity:.85; font-size:12px; }
+  .contenido { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:10px; }
+  .pestanas { display:flex; border-top:1px solid var(--borde); background:#fff; }
+  .pestanas button { flex:1; font:inherit; font-size:12px; font-weight:800; border:0; background:none; padding:8px 2px 10px; color:var(--suave); cursor:pointer; position:relative; }
+  .pestanas button span { display:block; font-size:20px; }
+  .pestanas button.activa { color:var(--verde); }
+  .globo { position:absolute; top:4px; right:22%; background:var(--rojo); color:#fff; border-radius:999px; font-size:11px; padding:0 6px; }
+  .caja { background:#fff; border:1px solid var(--borde); border-radius:14px; padding:12px; }
+  .caja h3 { margin:0 0 6px; font-size:15px; font-weight:900; }
+  .cifras { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+  .cifra { background:#fff; border:1px solid var(--borde); border-radius:12px; padding:8px; text-align:center; }
+  .cifra b { display:block; font-size:19px; font-weight:900; } .cifra span { font-size:11px; color:var(--suave); }
+  .cifra.bien { background:var(--menta); border-color:#b9dfc8; } .cifra.bien b { color:var(--verde); }
+  .dia { display:flex; gap:8px; align-items:flex-start; padding:7px 0; border-bottom:1px solid #f0f0f0; }
+  .dia:last-child { border-bottom:0; }
+  .dia > b { width:40px; flex:none; font-size:13px; padding-top:4px; }
+  .dia .huecos { flex:1; display:flex; flex-direction:column; gap:4px; }
+  .libre { color:#aaa; font-size:13px; padding-top:4px; }
+  .trab { border-radius:9px; padding:6px 8px; font-size:13px; cursor:default; }
+  .trab.ok { background:var(--menta); } .trab.pend { background:var(--ambar); } .trab.hecho { background:#eceff1; color:#555; }
+  .trab.clic { cursor:pointer; outline:2px solid var(--verde); }
+  .aviso { background:#fff; border:1px solid var(--borde); border-radius:14px; padding:10px 12px; display:flex; flex-direction:column; gap:6px; }
+  .aviso.nuevo { border-color:var(--verde); box-shadow:0 0 0 2px var(--menta); }
+  .aviso .fila { display:flex; justify-content:space-between; gap:8px; font-size:13px; color:var(--suave); }
+  .aviso b { font-size:15px; }
+  .estado { font-size:12px; font-weight:800; border-radius:999px; padding:2px 8px; align-self:flex-start; }
+  .estado.nuevo { background:var(--rosa); color:var(--rojo); } .estado.presupuestado { background:var(--ambar); color:var(--ambar-t); }
+  .estado.aceptado { background:var(--menta); color:var(--verde-osc); } .estado.hecho, .estado.rechazado { background:#eceff1; color:#555; }
+  .foto-falsa { height:70px; border-radius:10px; background:repeating-linear-gradient(45deg,#dfe6e2 0 10px,#eef2f0 10px 20px); display:flex; align-items:center; justify-content:center; font-size:26px; }
+  .btn { font:inherit; font-weight:800; border:0; border-radius:10px; padding:9px 12px; cursor:pointer; background:var(--verde); color:#fff; }
+  .btn.sec { background:#eef4f1; color:var(--verde-osc); }
+  .btn.peligro { background:#fbecea; color:var(--rojo); }
+  .btn:disabled { opacity:.45; cursor:default; }
+  .fila-btn { display:flex; gap:6px; flex-wrap:wrap; }
+  .fila-btn .btn { flex:1; }
+  label.campo { display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:14px; }
+  label.campo input, label.campo select { width:110px; font:inherit; border:1px solid var(--borde); border-radius:8px; padding:5px 7px; }
+  .sugerido { font-size:13px; color:var(--suave); }
+  .linea { display:flex; justify-content:space-between; gap:8px; font-size:13px; padding:3px 0; border-bottom:1px dashed #eee; }
+  .linea input { width:70px; font:inherit; font-size:13px; border:1px solid var(--borde); border-radius:6px; padding:2px 5px; text-align:right; }
+  .ticket { background:#fff; border:1px solid var(--borde); border-radius:12px; padding:10px; }
+  .ticket .tit { display:flex; justify-content:space-between; font-weight:800; font-size:13px; margin-bottom:4px; }
+  .ok-tag { color:var(--verde); font-weight:800; font-size:12px; }
+  .elige { display:flex; gap:5px; flex-wrap:wrap; }
+  .elige button { font:inherit; font-weight:800; border:1px solid var(--borde); background:#fff; border-radius:8px; padding:5px 10px; cursor:pointer; }
+  .elige button.on { background:var(--verde); color:#fff; border-color:var(--verde); }
+  .privado { background:#1f2430; color:#fff; border-radius:14px; padding:12px; }
+  .privado h3 { margin:0 0 4px; font-size:15px; }
+  .privado .grande { font-size:24px; font-weight:900; }
+  .alerta { border-radius:10px; padding:8px 10px; font-size:13px; margin-top:8px; }
+  .alerta.mal { background:#5a2320; } .alerta.bien { background:#1e4a31; }
+  .vacio { color:var(--suave); text-align:center; padding:30px 10px; font-size:14px; }
+  /* — WhatsApp de Ana — */
+  .barra-wa { background:#075e54; color:#fff; padding:16px 14px 10px; display:flex; align-items:center; gap:10px; }
+  .barra-wa .cara { width:36px; height:36px; border-radius:50%; background:#cfd8dc; display:flex; align-items:center; justify-content:center; font-size:20px; }
+  .barra-wa b { font-size:15px; } .barra-wa small { display:block; opacity:.8; font-size:12px; }
+  .chat { flex:1; overflow-y:auto; padding:10px; display:flex; flex-direction:column; gap:7px; background:var(--wa); }
+  .m { max-width:84%; padding:7px 10px; border-radius:10px; font-size:14px; background:#fff; box-shadow:0 1px 0 rgba(0,0,0,.08); }
+  .m.yo { align-self:flex-end; background:var(--wa-yo); }
+  .m.sis { align-self:center; background:#fff7d6; font-size:12px; color:#6b5a00; text-align:center; }
+  .m small { display:block; font-size:11px; color:#7a8a80; margin-top:2px; }
+  .m .foto-falsa { height:90px; width:150px; }
+  .respuestas { padding:8px; background:#f0f0f0; display:flex; flex-direction:column; gap:6px; border-top:1px solid #ddd; }
+  .respuestas button { font:inherit; font-weight:800; border:0; border-radius:20px; padding:9px 12px; background:#fff; color:#075e54; cursor:pointer; text-align:left; }
+  .respuestas .espera { color:var(--suave); font-size:13px; text-align:center; padding:6px; }
+  .papel { background:#fff; border-radius:6px; padding:10px 12px; font-size:12px; border:1px solid #e5e5e5; }
+  .papel h4 { margin:0 0 4px; color:var(--verde); font-size:14px; }
+  .papel .cat { font-weight:800; background:#f3f6f5; padding:2px 5px; margin-top:5px; }
+  .papel .tot { display:flex; justify-content:space-between; background:var(--verde); color:#fff; border-radius:6px; padding:5px 8px; margin-top:6px; font-weight:900; }
+  .papel .pie { color:#888; font-size:11px; margin-top:5px; }
+  .estrellas button { font-size:24px; background:none; border:0; cursor:pointer; padding:0 2px; }
+  .capa { position:absolute; inset:0; background:#f6f8f7; display:flex; flex-direction:column; z-index:3; }
+  .capa .contenido { gap:10px; }
+  .antes-despues { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  .opinion { font-size:13px; border-bottom:1px solid #eee; padding:6px 0; }
+  .nota-proto { max-width:900px; margin:0 auto; padding:0 16px 24px; color:var(--suave); font-size:13px; text-align:center; }
+</style>
+</head>
+<body>
+<div class="cab">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="46" height="46" aria-hidden="true"><rect width="100" height="100" rx="22" fill="#2e7d4f"/><path d="M50 12 L88 44 H78 V86 a4 4 0 0 1 -4 4 H26 a4 4 0 0 1 -4 -4 V44 H12 Z" fill="#ffffff" stroke="#ffffff" stroke-width="5" stroke-linejoin="round"/><g transform="translate(50 66) rotate(-45) scale(0.74)"><rect x="-6.5" y="-4" width="13" height="38" rx="6.5" fill="#2e7d4f"/><circle cx="0" cy="-14" r="15.5" fill="#2e7d4f"/><rect x="-6" y="-35" width="12" height="17" rx="2" fill="#ffffff"/></g></svg>
+  <div><h1>Manitu · prototipo</h1><p>Las dos caras: lo que hace uno aparece en el otro. Empieza por el móvil de Ana.</p></div>
+  <div class="acciones-demo">
+    <button id="deshacer" disabled>↩ Deshacer</button>
+    <button id="reiniciar">⟲ Empezar de nuevo</button>
+  </div>
+</div>
+<div class="elegir"><button data-ver="t" class="activo">👷 El que trabaja</button><button data-ver="a">🏠 Ana (clienta)</button></div>
+<div class="escena">
+  <div class="lado" id="lado-t">
+    <div class="etiqueta">👷 El que trabaja<small>la app Manitu (tu padre)</small></div>
+    <div class="movil"><div class="pantalla" id="app-t"></div></div>
+  </div>
+  <div class="lado" id="lado-a">
+    <div class="etiqueta">🏠 Ana, la clienta<small>su WhatsApp de siempre</small></div>
+    <div class="movil"><div class="pantalla" id="app-a"></div></div>
+  </div>
+</div>
+<p class="nota-proto">Prototipo: los datos son de ejemplo y nada se envía de verdad.</p>
+
+<script>
+const LOGO = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="30" height="30" aria-hidden="true"><rect width="100" height="100" rx="22" fill="#2e7d4f"/><path d="M50 12 L88 44 H78 V86 a4 4 0 0 1 -4 4 H26 a4 4 0 0 1 -4 -4 V44 H12 Z" fill="#ffffff" stroke="#ffffff" stroke-width="5" stroke-linejoin="round"/><g transform="translate(50 66) rotate(-45) scale(0.74)"><rect x="-6.5" y="-4" width="13" height="38" rx="6.5" fill="#2e7d4f"/><circle cx="0" cy="-14" r="15.5" fill="#2e7d4f"/><rect x="-6" y="-35" width="12" height="17" rx="2" fill="#ffffff"/></g></svg>`;
+const PROFESIONAL = "Juan";      // nombre de ejemplo del profesional
+
+// Tickets de ejemplo que «lee» la cámara (los mismos del papel de ejemplo: 101,85 € en total)
+const TICKETS = [
+  { tienda: "Bricolaje", lineas: [["Grifo monomando de cocina", "Grifería", 1, 48.90], ["Latiguillo flexible 40 cm", "Fontanería", 2, 6.50], ["Silicona sanitaria", "Pequeño material", 1, 6.95]] },
+  { tienda: "Ferretería", lineas: [["Tubo multicapa 16 mm (m)", "Fontanería", 3, 3.20], ["Codo 16 mm", "Fontanería", 4, 1.85], ["Llave de paso 1/2\"", "Fontanería", 2, 7.40], ["Cinta de teflón", "Pequeño material", 1, 1.20]] }
+];
+const DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+const HORAS_TIPO = { tardes: ["17:00", "19:00"], mananas: ["9:00", "12:00"], todo: ["9:00", "12:00", "17:00"], trabajo: [], descanso: [] };
+const NOMBRE_TIPO = { trabajo: "Trabajo principal", tardes: "Tardes", mananas: "Mañanas", todo: "Todo el día", descanso: "Descanso" };
+
+function inicial() {
+  return {
+    anaPaso: 0,
+    chat: [{ de: "sis", txt: "Ana escribe al WhatsApp de " + PROFESIONAL + ", que usa Manitu." }],
+    avisos: [
+      { id: "luis", cliente: "Luis", problema: "La cisterna no para de cargar", zona: "Tamaraceite", dia: "Mar", hora: "17:00", estado: "aceptado", precio: 70 },
+      { id: "pedro", cliente: "Pedro", problema: "Un enchufe que echa chispas", zona: "Guanarteme", dia: "Jue", hora: "17:00", estado: "presupuestado", precio: 45 },
+      { id: "carmen", cliente: "Carmen G.", problema: "Pintar un cuarto pequeño", zona: "Siete Palmas", dia: "Sáb", hora: "12:00", estado: "aceptado", precio: 180 }
+    ],
+    trabajo: { tickets: [], horas: null, viajes: null, enCamino: false, terminado: false, pensaba: "" },
+    opinion: 0,
+    ajustes: { precioHora: 25, desplazamiento: 12, gasolina: 4, margen: 10,
+               dias: { Lun: "trabajo", Mar: "tardes", "Mié": "trabajo", Jue: "tardes", Vie: "trabajo", "Sáb": "mananas", Dom: "descanso" } }
+  };
+}
+
+let S = inicial();
+let pila = [];                                   // fotos del estado para «Deshacer»
+const ui = { pestana: "semana", ver: "t", presupuestando: false, corrigiendo: -1, ficha: false };
+try { const g = JSON.parse(localStorage.getItem("manitu-proto")); if (g) S = g; } catch (e) {}
+
+function hacer(cambio) {
+  pila.push(JSON.stringify(S));
+  cambio();
+  try { localStorage.setItem("manitu-proto", JSON.stringify(S)); } catch (e) {}
+  pintar();
+}
+const euros = x => x.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const ana = () => S.avisos.find(a => a.id === "ana");
+function bot(txt) { S.chat.push({ de: "bot", txt }); }
+function yo(txt) { S.chat.push({ de: "yo", txt }); }
+
+// Huecos libres según los días que el profesional dice que puede trabajar
+function huecosLibres() {
+  const r = [];
+  for (const d of DIAS) for (const h of HORAS_TIPO[S.ajustes.dias[d]])
+    if (!S.avisos.some(a => a.dia === d && a.hora === h && a.estado !== "rechazado")) r.push([d, h]);
+  return r.slice(0, 3);
+}
+function material() { return S.trabajo.tickets.reduce((s, t) => s + t.lineas.reduce((x, l) => x + l[2] * l[3], 0), 0); }
+
+// ——— Cuentas del trabajo de Ana ———
+function cuentas() {
+  const aj = S.ajustes, t = S.trabajo, a = ana();
+  const mat = material(), viajes = t.viajes || 0, horas = t.horas || 0;
+  const gastos = mat + viajes * aj.gasolina;
+  const precio = a ? a.precio : 0;
+  const porHora = horas ? (precio - gastos) / horas : 0;
+  const justo = mat * (1 + aj.margen / 100) + horas * aj.precioHora + viajes * aj.desplazamiento;
+  return { mat, gastos, precio, porHora, justo, viajes, horas };
+}
+
+// ═══════════ App del que trabaja ═══════════
+function pintarTrabajador() {
+  const nuevos = S.avisos.filter(a => a.estado === "nuevo").length;
+  const pest = [["semana", "📅", "Semana"], ["avisos", "🔔", "Avisos"], ["trabajo", "🧾", "Trabajo"], ["ajustes", "⚙️", "Ajustes"]];
+  let cuerpo = { semana: vistaSemana, avisos: vistaAvisos, trabajo: vistaTrabajo, ajustes: vistaAjustes }[ui.pestana]();
+  document.getElementById("app-t").innerHTML = `
+    <div class="barra-app">${LOGO}<div><b>Manitu</b><small>Lo arreglas tú. Las cuentas, Manitu.</small></div></div>
+    <div class="contenido">${cuerpo}</div>
+    <div class="pestanas">${pest.map(([id, ic, n]) => `<button data-pest="${id}" class="${ui.pestana === id ? "activa" : ""}"><span>${ic}</span>${n}${id === "avisos" && nuevos ? `<i class="globo">${nuevos}</i>` : ""}</button>`).join("")}</div>`;
+}
+
+function vistaSemana() {
+  const activos = S.avisos.filter(a => a.estado !== "rechazado");
+  const porHacer = S.avisos.filter(a => a.estado === "nuevo" || a.estado === "presupuestado").length;
+  const total = activos.reduce((s, a) => s + (a.precio || 0), 0);
+  const filas = DIAS.map(d => {
+    const tipo = S.ajustes.dias[d];
+    const del_dia = activos.filter(a => a.dia === d).sort((x, y) => x.hora.localeCompare(y.hora));
+    let dentro = del_dia.map(a => {
+      const clase = a.estado === "aceptado" ? "ok" : a.estado === "hecho" ? "hecho" : "pend";
+      const clic = a.id === "ana" && a.estado === "aceptado" ? " clic" : "";
+      const txt = a.estado === "presupuestado" ? "esperando respuesta" : a.estado === "nuevo" ? "presupuesto por mandar" : a.estado === "hecho" ? "hecho ✓" : "confirmado";
+      return `<div class="trab ${clase}${clic}" ${clic ? 'data-abrir="ana"' : ""}><b>${a.hora}</b> · ${esc(a.cliente)}: ${esc(a.problema)}<br><small>${txt}${a.precio ? " · " + euros(a.precio) : ""}</small></div>`;
+    }).join("");
+    if (!dentro) dentro = `<div class="libre">${tipo === "trabajo" ? "Tu trabajo principal" : tipo === "descanso" ? "Descanso" : "Libre (" + NOMBRE_TIPO[tipo].toLowerCase() + ")"}</div>`;
+    return `<div class="dia"><b>${d}</b><div class="huecos">${dentro}</div></div>`;
+  }).join("");
+  const estrellas = S.opinion ? `<div class="caja">⭐ Ana te ha puesto ${"★".repeat(S.opinion)}${"☆".repeat(5 - S.opinion)}</div>` : "";
+  return `
+    <div class="cifras">
+      <div class="cifra"><b>${activos.length}</b><span>avisos esta semana</span></div>
+      <div class="cifra"><b>${porHacer}</b><span>por hacer</span></div>
+      <div class="cifra bien"><b>${euros(total).replace(",00", "")}</b><span>si haces todos</span></div>
+    </div>
+    ${estrellas}
+    <div class="caja"><h3>Tu semana (orientativa)</h3>${filas}</div>
+    <p class="sugerido">Los días de tu trabajo principal no se tocan. Cámbialos en ⚙️ Ajustes.</p>`;
+}
+
+function vistaAvisos() {
+  const lista = [...S.avisos].sort((x, y) => (x.estado === "nuevo" ? -1 : 0) - (y.estado === "nuevo" ? -1 : 0));
+  if (!lista.length) return `<div class="vacio">No hay avisos.</div>`;
+  const nombres = { nuevo: "Nuevo · mandar presupuesto", presupuestado: "Presupuesto enviado", aceptado: "Aceptado", hecho: "Hecho", rechazado: "No aceptado" };
+  return lista.map(a => {
+    let extra = "";
+    if (a.id === "ana" && a.estado === "nuevo") {
+      if (ui.presupuestando) {
+        const aj = S.ajustes, h = Number(ui.h ?? 4.5), m = Number(ui.m ?? 100);
+        const sugerido = Math.round(m * (1 + aj.margen / 100) + h * aj.precioHora + 2 * aj.desplazamiento);
+        extra = `
+          <label class="campo">Horas que calculas <input type="number" step="0.5" min="0" data-campo="h" value="${h}"></label>
+          <label class="campo">Material aprox. (€) <input type="number" step="5" min="0" data-campo="m" value="${m}"></label>
+          <div class="sugerido">Con tus ${aj.precioHora} €/h, Manitu te sugiere: <b>${euros(sugerido)}</b></div>
+          <label class="campo">Precio cerrado (€) <input type="number" step="1" min="0" data-campo="p" value="${ui.p ?? sugerido}"></label>
+          <div class="fila-btn"><button class="btn" data-accion="enviar-presu">📤 Mandar a Ana</button><button class="btn sec" data-accion="cancelar-presu">Cancelar</button></div>`;
+      } else {
+        extra = `<div class="fila-btn"><button class="btn" data-accion="presupuestar">💶 Hacer presupuesto</button><button class="btn peligro" data-accion="no-puedo">No puedo</button></div>`;
+      }
+    }
+    return `<div class="aviso ${a.estado === "nuevo" ? "nuevo" : ""}">
+      <span class="estado ${a.estado}">${nombres[a.estado]}</span>
+      <b>${esc(a.cliente)} · ${esc(a.problema)}</b>
+      ${a.id === "ana" ? `<div class="foto-falsa">🚰</div>` : ""}
+      <div class="fila"><span>📍 ${esc(a.zona)}</span><span>📅 ${a.dia} ${a.hora}</span>${a.precio ? `<span>${euros(a.precio)}</span>` : ""}</div>
+      ${extra}</div>`;
+  }).join("");
+}
+
+function vistaTrabajo() {
+  const a = ana();
+  if (!a || (a.estado !== "aceptado" && a.estado !== "hecho"))
+    return `<div class="vacio">Cuando Ana acepte el presupuesto, su trabajo aparecerá aquí.<br><br>Ahora mismo: ${a ? "esperando su respuesta" : "todavía no ha escrito"}.</div>`;
+  const t = S.trabajo, c = cuentas();
+  let html = `<div class="caja"><h3>🚰 Grifo de Ana</h3><div class="sugerido">${a.dia} ${a.hora} · ${esc(a.zona)} · precio cerrado ${euros(a.precio)}</div></div>`;
+  if (!t.enCamino) return html + `<button class="btn" data-accion="salgo">🚐 Salgo para allá (avisa a Ana)</button>`;
+  // Tickets
+  html += t.tickets.map((tk, i) => {
+    const corrigiendo = ui.corrigiendo === i;
+    const lineas = tk.lineas.map((l, j) => `<div class="linea"><span>${l[2]} × ${esc(l[0])}</span>${corrigiendo
+      ? `<input type="number" step="0.01" data-precio="${i}-${j}" value="${l[3]}">` : `<span>${euros(l[2] * l[3])}</span>`}</div>`).join("");
+    const pie = corrigiendo ? `<div class="fila-btn"><button class="btn" data-accion="guardar-correccion" data-i="${i}">Guardar</button></div>`
+      : tk.ok ? `<span class="ok-tag">✓ Comprobado</span>`
+      : `<div class="sugerido">He leído esto. ¿Está bien?</div><div class="fila-btn"><button class="btn" data-accion="ticket-ok" data-i="${i}">✅ Sí</button><button class="btn sec" data-accion="corregir" data-i="${i}">✏️ Corregir</button></div>`;
+    return `<div class="ticket"><div class="tit"><span>🧾 ${esc(tk.tienda)}</span><span>${euros(tk.lineas.reduce((x, l) => x + l[2] * l[3], 0))}</span></div>${lineas}${pie}</div>`;
+  }).join("");
+  if (!t.terminado) {
+    const quedan = t.tickets.length < TICKETS.length;
+    html += `<button class="btn sec" data-accion="foto-ticket" ${quedan ? "" : "disabled"}>📷 ${quedan ? "Foto a un ticket" : "No hay más tickets de ejemplo"}</button>
+      <div class="caja"><h3>Al terminar</h3>
+        <div class="sugerido">¿Cuántas horas?</div><div class="elige">${[2, 3, 4, 4.5, 5, 6].map(h => `<button data-horas="${h}" class="${t.horas === h ? "on" : ""}">${String(h).replace(".", ",")}</button>`).join("")}</div>
+        <div class="sugerido" style="margin-top:6px">¿Cuántos viajes?</div><div class="elige">${[1, 2, 3].map(v => `<button data-viajes="${v}" class="${t.viajes === v ? "on" : ""}">${v}</button>`).join("")}</div>
+      </div>
+      <button class="btn" data-accion="terminar" ${t.horas && t.viajes && t.tickets.length && t.tickets.every(x => x.ok) ? "" : "disabled"}>✅ Terminado</button>
+      <p class="sugerido">Para terminar: al menos un ticket comprobado, las horas y los viajes.</p>`;
+    return html;
+  }
+  // Cuenta privada
+  const corto = c.porHora < S.ajustes.precioHora * 0.8;
+  html += `<div class="privado"><h3>🔒 Tu cuenta · solo para ti</h3>
+    <div class="linea" style="border-color:#444"><span>Material (tickets)</span><span>${euros(c.mat)}</span></div>
+    <div class="linea" style="border-color:#444"><span>Gasolina (${c.viajes} viajes)</span><span>${euros(c.viajes * S.ajustes.gasolina)}</span></div>
+    <div class="linea" style="border-color:#444"><span>Cobras (precio cerrado)</span><span>${euros(c.precio)}</span></div>
+    <div style="margin-top:6px">Ganas de verdad</div><div class="grande">${euros(c.porHora)} / hora</div>
+    <div class="alerta ${corto ? "mal" : "bien"}">${corto
+      ? `⚠️ Por debajo de tus ${S.ajustes.precioHora} €/h. Para la próxima, un trabajo así debería costar unos <b>${euros(Math.round(c.justo))}</b>.`
+      : `✅ Bien cobrado: estás en tus ${S.ajustes.precioHora} €/h o más.`}</div></div>`;
+  html += a.estado === "hecho"
+    ? `<div class="caja">📄 Papel enviado a Ana ✓</div>`
+    : `<button class="btn" data-accion="mandar-papel">📄 Mandar el papel a Ana</button>`;
+  return html;
+}
+
+function vistaAjustes() {
+  const aj = S.ajustes;
+  return `<div class="caja"><h3>Tus precios</h3>
+      <label class="campo">Quieres ganar (€/hora) <input type="number" min="5" step="1" data-ajuste="precioHora" value="${aj.precioHora}"></label>
+      <label class="campo">Desplazamiento (€) <input type="number" min="0" step="1" data-ajuste="desplazamiento" value="${aj.desplazamiento}"></label>
+      <label class="campo">Gasolina por viaje (€) <input type="number" min="0" step="1" data-ajuste="gasolina" value="${aj.gasolina}"></label>
+      <label class="campo">Compra del material (%) <input type="number" min="0" step="1" data-ajuste="margen" value="${aj.margen}"></label></div>
+    <div class="caja"><h3>Cuándo puedes trabajar</h3>
+      ${DIAS.map(d => `<label class="campo">${d}<select data-dia="${d}">${Object.entries(NOMBRE_TIPO).map(([k, n]) => `<option value="${k}" ${aj.dias[d] === k ? "selected" : ""}>${n}</option>`).join("")}</select></label>`).join("")}
+      <p class="sugerido">Con esto, el asistente solo ofrece a tus clientes los huecos en los que puedes.</p></div>`;
+}
+
+// ═══════════ WhatsApp de Ana ═══════════
+function pintarAna() {
+  const c = cuentas(), a = ana();
+  const msgs = S.chat.map(m => {
+    if (m.de === "sis") return `<div class="m sis">${esc(m.txt)}</div>`;
+    if (m.tipo === "foto") return `<div class="m yo"><div class="foto-falsa">🚰</div><small>Foto del grifo</small></div>`;
+    if (m.tipo === "papel") return `<div class="m">${papel()}</div>`;
+    return `<div class="m ${m.de === "yo" ? "yo" : ""}">${m.txt}${m.de === "bot" ? `<small>Asistente de ${PROFESIONAL} · Manitu</small>` : ""}</div>`;
+  }).join("");
+  let botones = "";
+  const p = S.anaPaso;
+  if (p === 0) botones = `<button data-ana="escribir">💬 «Hola, el grifo de la cocina pierde agua»</button>`;
+  else if (p === 1) botones = `<button data-ana="foto">📷 Mandar foto del grifo</button>`;
+  else if (p === 2) botones = `<button data-ana="zona">📍 «Estoy en Schamann»</button>`;
+  else if (p === 3) {
+    const h = huecosLibres();
+    botones = h.length ? h.map(([d, hr]) => `<button data-ana="dia" data-d="${d}" data-h="${hr}">📅 ${d} a las ${hr}</button>`).join("")
+                       : `<div class="espera">No quedan huecos libres esta semana (cámbialo en Ajustes del que trabaja).</div>`;
+  }
+  else if (p === 4) botones = `<div class="espera">Esperando el presupuesto de ${PROFESIONAL}… (míralo en 🔔 Avisos, a la izquierda)</div>`;
+  else if (p === 5) botones = `<button data-ana="acepto">✅ Acepto</button><button data-ana="ficha">👷 ¿Quién es ${PROFESIONAL}?</button><button data-ana="no">❌ No, gracias</button>`;
+  else if (p === 6) botones = `<div class="espera">Esperando el día… (el que trabaja pulsa «Salgo para allá» en 🧾 Trabajo)</div>`;
+  else if (p === 7) botones = `<div class="espera">${PROFESIONAL} está trabajando… (a la izquierda: tickets, horas y «Terminado»)</div>`;
+  else if (p === 8) botones = `<div class="espera">¿Qué tal el trabajo?</div><div class="estrellas" style="text-align:center">${[1, 2, 3, 4, 5].map(n => `<button data-ana="estrellas" data-n="${n}">☆</button>`).join("")}</div>`;
+  else botones = `<div class="espera">Fin del ejemplo. Pulsa «Empezar de nuevo» arriba para repetir.</div>`;
+  const ficha = ui.ficha ? `<div class="capa">
+      <div class="barra-wa"><div class="cara">👷</div><div><b>${PROFESIONAL}</b><small>Reparaciones en casa · Las Palmas</small></div></div>
+      <div class="contenido">
+        <div class="caja"><h3>Trabajos que ha hecho</h3><div class="antes-despues"><div class="foto-falsa">🚿 antes</div><div class="foto-falsa">✨ después</div><div class="foto-falsa">🔌 antes</div><div class="foto-falsa">✨ después</div></div></div>
+        <div class="caja"><h3>Opiniones</h3>
+          ${S.opinion ? `<div class="opinion">${"★".repeat(S.opinion)} · Ana: «Grifo arreglado, todo por escrito.»</div>` : ""}
+          <div class="opinion">★★★★★ · Luis: «Vino a la hora y me dijo el precio antes.»</div>
+          <div class="opinion">★★★★☆ · Carmen G.: «Muy limpio trabajando.»</div></div>
+        <button class="btn" data-ana="cerrar-ficha">← Volver al chat</button>
+      </div></div>` : "";
+  document.getElementById("app-a").innerHTML = `
+    <div class="barra-wa"><div class="cara">👷</div><div><b>${PROFESIONAL} · Reparaciones</b><small>en línea</small></div></div>
+    <div class="chat" id="chat">${msgs}</div>
+    <div class="respuestas">${botones}</div>${ficha}`;
+  const chat = document.getElementById("chat"); chat.scrollTop = chat.scrollHeight;
+}
+
+// El papel que recibe Ana: el material a precio de ticket y el total = precio cerrado (sin sorpresas)
+function papel() {
+  const c = cuentas(), a = ana();
+  const grupos = {};
+  for (const tk of S.trabajo.tickets) for (const l of tk.lineas) (grupos[l[1]] = grupos[l[1]] || []).push(l);
+  const desp = c.viajes * S.ajustes.desplazamiento;
+  const mano = Math.max(0, c.precio - c.mat - desp);
+  return `<div class="papel"><h4>Resumen del trabajo</h4><div class="sugerido">Cambio de grifo · ${a.dia} ${a.hora}</div>
+    ${Object.entries(grupos).map(([cat, ls]) => `<div class="cat">${esc(cat)}</div>` + ls.map(l => `<div class="linea"><span>${l[2]} × ${esc(l[0])}</span><span>${euros(l[2] * l[3])}</span></div>`).join("")).join("")}
+    <div class="cat">Trabajo</div>
+    <div class="linea"><span>Mano de obra (${String(c.horas).replace(".", ",")} h)</span><span>${euros(mano)}</span></div>
+    <div class="linea"><span>Desplazamientos (${c.viajes})</span><span>${euros(desp)}</span></div>
+    <div class="tot"><span>TOTAL</span><span>${euros(c.precio)}</span></div>
+    <div class="pie">✅ El precio cerrado que aceptaste. Material a precio de ticket.<br>Hecho con Manitu · <i>Sin sorpresas para nadie.</i></div></div>`;
+}
+
+function pintar() {
+  pintarTrabajador(); pintarAna();
+  document.getElementById("deshacer").disabled = !pila.length;
+  document.getElementById("lado-t").classList.toggle("oculto", ui.ver !== "t");
+  document.getElementById("lado-a").classList.toggle("oculto", ui.ver !== "a");
+  document.querySelectorAll(".elegir button").forEach(b => b.classList.toggle("activo", b.dataset.ver === ui.ver));
+}
+
+// ═══════════ Lo que pasa al pulsar ═══════════
+document.addEventListener("click", e => {
+  const b = e.target.closest("button, [data-abrir]");
+  if (!b) return;
+  const d = b.dataset;
+  if (d.pest) { ui.pestana = d.pest; pintar(); return; }
+  if (d.ver) { ui.ver = d.ver; pintar(); return; }
+  if (d.abrir) { ui.pestana = "trabajo"; pintar(); return; }
+  if (d.horas) return hacer(() => { S.trabajo.horas = Number(d.horas); });
+  if (d.viajes) return hacer(() => { S.trabajo.viajes = Number(d.viajes); });
+
+  // — Ana —
+  if (d.ana === "escribir") return hacer(() => { yo("Hola, el grifo de la cocina pierde agua 😩"); bot(`¡Hola! Soy el asistente de ${PROFESIONAL}. Para darle precio, ¿me manda una foto del grifo y en qué zona está?`); S.anaPaso = 1; });
+  if (d.ana === "foto") return hacer(() => { S.chat.push({ de: "yo", tipo: "foto" }); S.anaPaso = 2; });
+  if (d.ana === "zona") return hacer(() => { yo("Estoy en Schamann"); bot("Gracias. ¿Qué día le viene mejor? Estos son los huecos libres de " + PROFESIONAL + ":"); S.anaPaso = 3; });
+  if (d.ana === "dia") return hacer(() => {
+    yo(`${d.d} a las ${d.h}`);
+    bot(`Apuntado ✅ ${PROFESIONAL} le manda el precio cerrado en cuanto pueda.`);
+    S.chat.push({ de: "sis", txt: "→ A " + PROFESIONAL + " le llega un aviso en Manitu" });
+    S.avisos.push({ id: "ana", cliente: "Ana", problema: "El grifo de la cocina pierde agua", zona: "Schamann", dia: d.d, hora: d.h, estado: "nuevo", precio: 0 });
+    S.anaPaso = 4;
+    ui.pestana = "avisos"; if (ui.ver === "a") ui.ver = "t";
+  });
+  if (d.ana === "ficha") { ui.ficha = true; pintar(); return; }
+  if (d.ana === "cerrar-ficha") { ui.ficha = false; pintar(); return; }
+  if (d.ana === "acepto") return hacer(() => { yo("Acepto ✅"); bot(`¡Perfecto! ${ana().dia} a las ${ana().hora}. Le avisamos cuando ${PROFESIONAL} vaya de camino.`); ana().estado = "aceptado"; S.anaPaso = 6; ui.pestana = "semana"; });
+  if (d.ana === "no") return hacer(() => { yo("No, gracias"); bot("Sin problema. ¡Gracias por escribir!"); ana().estado = "rechazado"; S.anaPaso = 9; });
+  if (d.ana === "estrellas") return hacer(() => { S.opinion = Number(d.n); yo("★".repeat(S.opinion) + " ¡Gracias!"); bot("¡Gracias, Ana! Su opinión ayuda a otros vecinos."); S.anaPaso = 9; ui.pestana = "semana"; });
+
+  // — El que trabaja —
+  if (d.accion === "presupuestar") { ui.presupuestando = true; ui.h = undefined; ui.m = undefined; ui.p = undefined; pintar(); return; }
+  if (d.accion === "cancelar-presu") { ui.presupuestando = false; pintar(); return; }
+  if (d.accion === "enviar-presu") {
+    const precio = Math.max(0, Math.round(Number(document.querySelector('[data-campo="p"]').value) || 0));
+    if (!precio) return;
+    ui.presupuestando = false;
+    return hacer(() => {
+      const a = ana(); a.precio = precio; a.estado = "presupuestado";
+      bot(`💶 Presupuesto de ${PROFESIONAL}: <b>${euros(precio)}</b>, precio cerrado con material incluido. ${a.dia} a las ${a.hora}. Sin sorpresas.`);
+      S.anaPaso = 5; if (ui.ver === "t") ui.ver = "a";
+    });
+  }
+  if (d.accion === "no-puedo") return hacer(() => { ana().estado = "rechazado"; bot(`Lo siento, ${PROFESIONAL} no puede encargarse esta vez. ¡Gracias por escribir!`); S.anaPaso = 9; });
+  if (d.accion === "salgo") return hacer(() => { S.trabajo.enCamino = true; bot(`🚐 ${PROFESIONAL} va de camino. Llega en unos 20 minutos.`); S.anaPaso = 7; });
+  if (d.accion === "foto-ticket") return hacer(() => { const t = TICKETS[S.trabajo.tickets.length]; S.trabajo.tickets.push({ tienda: t.tienda, lineas: t.lineas.map(l => [...l]), ok: false }); });
+  if (d.accion === "ticket-ok") return hacer(() => { S.trabajo.tickets[Number(d.i)].ok = true; });
+  if (d.accion === "corregir") { ui.corrigiendo = Number(d.i); pintar(); return; }
+  if (d.accion === "guardar-correccion") {
+    const i = Number(d.i);
+    const nuevos = [...document.querySelectorAll(`[data-precio^="${i}-"]`)].map(inp => Math.max(0, Number(inp.value) || 0));
+    ui.corrigiendo = -1;
+    return hacer(() => { S.trabajo.tickets[i].lineas.forEach((l, j) => { l[3] = nuevos[j]; }); S.trabajo.tickets[i].ok = true; });
+  }
+  if (d.accion === "terminar") return hacer(() => { S.trabajo.terminado = true; });
+  if (d.accion === "mandar-papel") return hacer(() => { S.chat.push({ de: "bot", tipo: "papel" }); ana().estado = "hecho"; S.anaPaso = 8; if (ui.ver === "t") ui.ver = "a"; });
+});
+
+// Cambios en ajustes y en el formulario del presupuesto
+document.addEventListener("change", e => {
+  const el = e.target;
+  if (el.dataset.ajuste) return hacer(() => { S.ajustes[el.dataset.ajuste] = Math.max(0, Number(el.value) || 0); });
+  if (el.dataset.dia) return hacer(() => { S.ajustes.dias[el.dataset.dia] = el.value; });
+  if (el.dataset.campo) { ui[el.dataset.campo] = Number(el.value) || 0; if (el.dataset.campo !== "p") ui.p = undefined; pintar(); }
+});
+
+document.getElementById("deshacer").onclick = () => {
+  if (!pila.length) return;
+  S = JSON.parse(pila.pop()); ui.presupuestando = false; ui.corrigiendo = -1;
+  try { localStorage.setItem("manitu-proto", JSON.stringify(S)); } catch (e) {}
+  pintar();
+};
+document.getElementById("reiniciar").onclick = () => {
+  pila.push(JSON.stringify(S)); S = inicial(); Object.assign(ui, { pestana: "semana", presupuestando: false, corrigiendo: -1, ficha: false });
+  try { localStorage.setItem("manitu-proto", JSON.stringify(S)); } catch (e) {}
+  pintar();
+};
+pintar();
+</script>
+</body>
+</html>
