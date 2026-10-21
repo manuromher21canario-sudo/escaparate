@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#14203A">
+<link rel="icon" href="icono-32.png">
+<title>Elegir app</title>
+<style>
+  :root {
+    --fondo: #14203A; --fondo2: #1C2B4A; --fondo3: #26385E; --claro: #E8ECF5; --gris: #A9B2C6;
+    --ambar: #E09A2B; --verde: #2E9E66; --rojo: #D9534F;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fondo); color: var(--claro); font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; line-height: 1.5; }
+  button, input, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; border: 0; background: none; }
+  :focus-visible { outline: 3px solid var(--ambar); outline-offset: 2px; }
+  .oculto { display: none !important; }
+  main { max-width: 640px; margin: 0 auto; padding: 24px 16px 120px; }
+  h1 { font-size: 30px; line-height: 1.15; margin: 4px 0 8px; }
+  h2 { font-size: 23px; line-height: 1.2; margin: 4px 0 6px; }
+  .sub { color: var(--gris); margin: 0 0 20px; }
+  .caja { background: var(--fondo2); border-radius: 16px; padding: 16px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,.06); }
+  .etiqueta { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--ambar); font-weight: 700; margin: 0 0 8px; }
+  .boton { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 12px; padding: 13px 18px; font-weight: 800; font-size: 17px; background: rgba(255,255,255,.09); }
+  .boton.principal { background: var(--ambar); color: #1B1406; }
+  .boton:disabled { opacity: .4; cursor: default; }
+  .ancho { width: 100%; }
+  .fila { display: flex; gap: 10px; flex-wrap: wrap; }
+  .fila > * { flex: 1 1 140px; }
+
+  /* Nombre */
+  .nombres { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .nombres button { flex: 1 1 120px; padding: 14px; border-radius: 12px; background: var(--fondo3); font-weight: 800; font-size: 18px; border: 2px solid transparent; }
+  .nombres button.si { border-color: var(--ambar); background: rgba(224,154,43,.15); }
+  input[type=text], textarea { width: 100%; background: var(--fondo); border: 1px solid rgba(255,255,255,.18); border-radius: 10px; padding: 12px; font-size: 17px; }
+  textarea { min-height: 90px; resize: vertical; }
+
+  /* Apps */
+  .app { display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: 12px; background: var(--fondo3); margin-bottom: 8px; }
+  .app input[type=checkbox] { width: 24px; height: 24px; margin: 2px 0 0; accent-color: var(--ambar); flex: none; }
+  .app label { flex: 1; cursor: pointer; }
+  .app b { display: block; font-size: 17px; }
+  .app span { color: var(--gris); font-size: 15px; }
+  .app .quitar { color: var(--gris); font-size: 14px; padding: 4px 8px; border-radius: 8px; background: rgba(255,255,255,.06); }
+  .anadir { display: flex; gap: 8px; margin-top: 10px; }
+  .anadir input { flex: 1; }
+
+  /* Puntuar */
+  .progreso { display: flex; gap: 6px; margin: 0 0 16px; }
+  .progreso i { flex: 1; height: 6px; border-radius: 3px; background: rgba(255,255,255,.12); }
+  .progreso i.si { background: var(--ambar); }
+  .ico { font-size: 38px; line-height: 1; }
+  .porque { color: var(--gris); margin: 0 0 14px; }
+  .corte { display: inline-block; background: rgba(217,83,79,.18); color: #F2B8B5; font-size: 14px; font-weight: 700; padding: 4px 10px; border-radius: 8px; margin-bottom: 12px; }
+  .leyenda { display: grid; grid-template-columns: 34px 1fr; gap: 4px 8px; font-size: 15px; color: var(--gris); margin-bottom: 14px; }
+  .leyenda b { color: var(--claro); text-align: center; }
+  .nota-app { font-weight: 800; font-size: 17px; margin: 0 0 8px; }
+  .tres { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .tres button { padding: 14px 4px; border-radius: 12px; background: var(--fondo3); font-weight: 800; font-size: 22px; border: 2px solid transparent; }
+  .tres button small { display: block; font-size: 12px; font-weight: 600; color: var(--gris); margin-top: 2px; line-height: 1.2; }
+  .tres button.si { border-color: var(--ambar); background: rgba(224,154,43,.18); }
+  .tres button.si small { color: var(--claro); }
+  .navegar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--fondo2); border-top: 1px solid rgba(255,255,255,.08); padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); }
+  .navegar .dentro { max-width: 640px; margin: 0 auto; display: flex; gap: 10px; align-items: center; }
+  .navegar .dentro .boton { flex: 1; }
+  .falta { color: var(--gris); font-size: 14px; text-align: center; margin-top: 6px; }
+
+  /* Resultado */
+  .puesto { display: flex; gap: 12px; align-items: center; }
+  .puesto .pos { font-size: 26px; font-weight: 900; color: var(--ambar); width: 34px; text-align: center; flex: none; }
+  .puesto .info { flex: 1; min-width: 0; }
+  .puesto .total { font-size: 24px; font-weight: 900; flex: none; }
+  .puesto .total small { font-size: 14px; color: var(--gris); font-weight: 600; }
+  .barra { height: 8px; border-radius: 4px; background: rgba(255,255,255,.1); margin-top: 6px; overflow: hidden; }
+  .barra i { display: block; height: 100%; background: var(--verde); }
+  .fuera { opacity: .6; }
+  .fuera .barra i { background: var(--rojo); }
+  .motivo { color: #F2B8B5; font-size: 14px; }
+  .desglose { font-size: 14px; color: var(--gris); margin-top: 4px; }
+
+  /* Aviso con deshacer */
+  .aviso { position: fixed; left: 50%; bottom: 92px; transform: translateX(-50%); background: #0B1324; border: 1px solid rgba(255,255,255,.15); border-radius: 12px; padding: 10px 12px 10px 16px; display: flex; gap: 12px; align-items: center; box-shadow: 0 8px 24px rgba(0,0,0,.4); width: calc(100% - 32px); max-width: 480px; z-index: 5; }
+  .aviso span { flex: 1; }
+  .aviso button { color: var(--ambar); font-weight: 800; padding: 6px 10px; }
+</style>
+</head>
+<body>
+<main>
+
+  <!-- 1. Quién eres -->
+  <section id="p-inicio">
+    <div class="ico">🧭</div>
+    <h1>¿En qué app nos centramos?</h1>
+    <p class="sub">Cada uno rellena esto en su móvil, <b>sin mirar lo del otro</b>. Al final descargas tu hoja y se la mandas a Emmanuel.</p>
+    <div class="caja">
+      <p class="etiqueta">¿Quién eres?</p>
+      <div class="nombres" id="nombres">
+        <button type="button" data-n="Emmanuel">Emmanuel</button>
+        <button type="button" data-n="Aray">Aray</button>
+      </div>
+    </div>
+    <div class="caja">
+      <p class="etiqueta">Cómo funciona</p>
+      <p style="margin:0 0 8px">Vas a puntuar cada app del <b>1 al 3</b> en 8 preguntas. Se suma sola.</p>
+      <p style="margin:0"><b>Regla:</b> si una app saca un <b>1</b> en «¿Hay algo gratis que ya lo haga?» o en «¿Lo podemos hacer nosotros?», <b>queda fuera</b> aunque sume mucho.</p>
+    </div>
+  </section>
+
+  <!-- 2. Qué apps -->
+  <section id="p-apps" class="oculto">
+    <h2>¿Qué apps comparamos?</h2>
+    <p class="sub">Desmarca las que no quieras puntuar. Puedes añadir otra idea.</p>
+    <div id="lista-apps"></div>
+    <div class="anadir">
+      <input type="text" id="nueva-app" placeholder="Otra idea…" maxlength="40">
+      <button type="button" class="boton" id="btn-anadir">＋ Añadir</button>
+    </div>
+  </section>
+
+  <!-- 3. Puntuar -->
+  <section id="p-puntuar" class="oculto">
+    <div class="progreso" id="progreso"></div>
+    <p class="etiqueta" id="paso-num"></p>
+    <div class="ico" id="crit-ico"></div>
+    <h2 id="crit-titulo"></h2>
+    <p class="porque" id="crit-porque"></p>
+    <div id="crit-corte" class="corte oculto">⚠️ Un 1 aquí deja la app fuera</div>
+    <div class="leyenda" id="crit-leyenda"></div>
+    <div id="crit-apps"></div>
+  </section>
+
+  <!-- 4. Resultado -->
+  <section id="p-resultado" class="oculto">
+    <div class="ico">🏁</div>
+    <h2 id="res-titulo">Tu resultado</h2>
+    <p class="sub">Esto es solo <b>tu</b> opinión. Emmanuel juntará las dos hojas.</p>
+    <div id="res-lista"></div>
+    <div class="caja">
+      <p class="etiqueta">¿Algo que quieras añadir? (opcional)</p>
+      <textarea id="notas" placeholder="Por ejemplo: por qué te gusta más una, o qué dudas tienes…"></textarea>
+    </div>
+    <div class="fila" style="margin-top:6px">
+      <button type="button" class="boton principal" id="btn-descargar">⬇️ Descargar mi hoja</button>
+      <button type="button" class="boton" id="btn-compartir">📤 Enviar por WhatsApp</button>
+    </div>
+    <p class="falta" id="res-hecho"></p>
+    <div class="fila" style="margin-top:18px">
+      <button type="button" class="boton" id="btn-cambiar">✏️ Cambiar puntos</button>
+      <button type="button" class="boton" id="btn-reiniciar">↺ Empezar de nuevo</button>
+    </div>
+  </section>
+
+</main>
+
+<div class="navegar" id="navegar">
+  <div class="dentro">
+    <button type="button" class="boton" id="btn-atras">← Atrás</button>
+    <button type="button" class="boton principal" id="btn-sig">Empezar →</button>
+  </div>
+  <p class="falta" id="falta"></p>
+</div>
+
+<div class="aviso oculto" id="aviso" role="status"><span id="aviso-texto"></span><button type="button" id="aviso-deshacer">Deshacer</button></div>
+
+<script>
+const APPS_INICIALES = [
+  { id: 'manitu', nombre: '🔧 Manitu', desc: 'Para manitas como tu padre: foto del ticket → sabe cuánto cobrar y le da al cliente un papel claro.' },
+  { id: 'abuela', nombre: '🧓 Buenos Días, Abuela', desc: 'Un mensaje o llamada diaria a la abuela con voces de los nietos; los hermanos se turnan.' },
+  { id: 'baul', nombre: '📦 Mi Baúl de los Recuerdos', desc: 'Las fotos antiguas de la familia en digital, con la voz del abuelo contando cada una.' },
+  { id: 'touless', nombre: '✂️ Touless (app de citas)', desc: 'Reservas para peluquerías sin comisiones, que acaban con los plantones.' },
+  { id: 'nexus', nombre: '💶 Plantillas Nexus', desc: 'Caja, Inventario y Citas con Google para negocios pequeños. Ya están hechas.' }
+];
+
+const CRITERIOS = [
+  { id: 'duele', ico: '🔥', titulo: '¿El problema duele de verdad?', porque: 'No vale «estaría guay». Tiene que haber gente que ya lo sufre (encuestas, quejas que hayáis oído o leído).',
+    n: ['Nadie lo sufre de verdad', 'Molesta un poco', 'Conocemos gente que lo sufre'] },
+  { id: 'paga', ico: '💶', titulo: '¿Quien paga, pagaría de verdad?', porque: 'A veces quien tiene el problema no es quien paga (en Mi Baúl el problema es del abuelo, pero paga el hijo). ¿Esa persona sacaría la cartera?',
+    n: ['Lo dudo', 'Puede que sí', 'Sí, seguro'] },
+  { id: 'llegar', ico: '🤝', titulo: '¿Podemos llegar a esos clientes?', porque: '¿Conocemos a gente así? Si no conocemos a nadie, empezar cuesta muchísimo.',
+    n: ['No conocemos a nadie', 'Algún contacto', 'Conocemos a varios'] },
+  { id: 'gratis', ico: '🆓', titulo: '¿Hay algo gratis que ya lo haga?', porque: 'Nos pasó con la app para bares: la descartamos porque había apps gratis. Si no estás seguro, búscalo en Google.',
+    n: ['Sí, igual y gratis', 'Hay algo parecido', 'No, la nuestra es distinta'], corte: true },
+  { id: 'hacer', ico: '🛠️', titulo: '¿Lo podemos hacer nosotros, gratis y sin líos legales?', porque: 'Somos menores: cobrar va por los padres o la gestoría. Si guarda cosas delicadas (fotos, voces, datos de clientes) hay más normas.',
+    n: ['No, imposible', 'Con ayuda', 'Sí, sin problema'], corte: true },
+  { id: 'euro', ico: '⏱️', titulo: '¿Cuándo llegaría el primer euro?', porque: 'Una idea que da dinero en 1-2 meses anima. Una que tarda un año cuesta mantenerla.',
+    n: ['Más de 6 meses', 'De 2 a 6 meses', 'En 1-2 meses'] },
+  { id: 'aray', ico: '🙋', titulo: '¿Hay un papel claro para Aray?', porque: 'Sin IA, con poco tiempo entre semana y más los findes. Tiene que haber una parte que sea suya.',
+    n: ['No hay nada para él', 'Alguna tarea', 'Sí, una parte suya'] },
+  { id: 'gusta', ico: '❤️', titulo: '¿Nos gusta?', porque: 'Vamos a estar meses con ella. Si a uno no le motiva, se nota y se deja.',
+    n: ['Me da igual', 'Me gusta', 'Me encanta'] }
+];
+
+const CLAVE = 'elegir-app-v1';
+let estado = cargar() || { nombre: '', apps: APPS_INICIALES.map((a) => ({ ...a, si: true })), puntos: {}, notas: '', pagina: 'inicio', paso: 0 };
+
+function cargar() { try { const s = localStorage.getItem(CLAVE); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
+function guardar() { try { localStorage.setItem(CLAVE, JSON.stringify(estado)); } catch (e) {} }
+const $ = (id) => document.getElementById(id);
+const elegidas = () => estado.apps.filter((a) => a.si);
+const punto = (app, crit) => (estado.puntos[app] || {})[crit];
+
+// Aviso con «Deshacer» durante 10 segundos
+let temporizador, alDeshacer;
+function avisar(texto, deshacer) {
+  $('aviso-texto').textContent = texto;
+  alDeshacer = deshacer;
+  $('aviso-deshacer').classList.toggle('oculto', !deshacer);
+  $('aviso').classList.remove('oculto');
+  clearTimeout(temporizador);
+  temporizador = setTimeout(() => $('aviso').classList.add('oculto'), 10000);
+}
+$('aviso-deshacer').onclick = () => { $('aviso').classList.add('oculto'); if (alDeshacer) alDeshacer(); };
+
+function ir(pagina, paso) {
+  estado.pagina = pagina;
+  if (paso !== undefined) estado.paso = paso;
+  guardar();
+  pintar();
+  window.scrollTo(0, 0);
+}
+
+function pintar() {
+  ['inicio', 'apps', 'puntuar', 'resultado'].forEach((p) => $('p-' + p).classList.toggle('oculto', estado.pagina !== p));
+  const nav = $('navegar');
+  nav.classList.toggle('oculto', estado.pagina === 'resultado');
+  $('falta').textContent = '';
+  if (estado.pagina === 'inicio') pintarInicio();
+  if (estado.pagina === 'apps') pintarApps();
+  if (estado.pagina === 'puntuar') pintarPaso();
+  if (estado.pagina === 'resultado') pintarResultado();
+}
+
+function pintarInicio() {
+  document.querySelectorAll('#nombres button').forEach((b) => b.classList.toggle('si', b.dataset.n === estado.nombre));
+  $('btn-atras').classList.add('oculto');
+  $('btn-sig').textContent = 'Empezar →';
+  $('btn-sig').disabled = !estado.nombre;
+  if (!estado.nombre) $('falta').textContent = 'Elige tu nombre para empezar';
+}
+document.querySelectorAll('#nombres button').forEach((b) => b.onclick = () => { estado.nombre = b.dataset.n; guardar(); pintar(); });
+
+function pintarApps() {
+  const caja = $('lista-apps');
+  caja.innerHTML = '';
+  estado.apps.forEach((a, i) => {
+    const fila = document.createElement('div');
+    fila.className = 'app';
+    fila.innerHTML = `<input type="checkbox" id="ap-${i}" ${a.si ? 'checked' : ''}>
+      <label for="ap-${i}"><b></b><span></span></label>`;
+    fila.querySelector('b').textContent = a.nombre;
+    fila.querySelector('span').textContent = a.desc || 'Idea añadida por ti';
+    fila.querySelector('input').onchange = (e) => { a.si = e.target.checked; guardar(); pintarApps(); };
+    if (a.propia) {
+      const q = document.createElement('button');
+      q.type = 'button'; q.className = 'quitar'; q.textContent = 'Quitar';
+      q.onclick = () => {
+        const copia = JSON.parse(JSON.stringify(estado));
+        estado.apps.splice(i, 1); delete estado.puntos[a.id]; guardar(); pintarApps();
+        avisar('Has quitado «' + a.nombre + '»', () => { estado = copia; guardar(); pintar(); });
+      };
+      fila.appendChild(q);
+    }
+    caja.appendChild(fila);
+  });
+  $('btn-atras').classList.remove('oculto');
+  $('btn-sig').textContent = 'Siguiente →';
+  const n = elegidas().length;
+  $('btn-sig').disabled = n < 2;
+  if (n < 2) $('falta').textContent = 'Marca al menos 2 apps para poder comparar';
+}
+$('btn-anadir').onclick = () => {
+  const nombre = $('nueva-app').value.trim();
+  if (!nombre) return;
+  estado.apps.push({ id: 'propia-' + Date.now(), nombre: '💡 ' + nombre, desc: '', si: true, propia: true });
+  $('nueva-app').value = '';
+  guardar(); pintarApps();
+};
+$('nueva-app').onkeydown = (e) => { if (e.key === 'Enter') $('btn-anadir').click(); };
+
+function pintarPaso() {
+  const c = CRITERIOS[estado.paso];
+  $('progreso').innerHTML = CRITERIOS.map((_, i) => `<i class="${i <= estado.paso ? 'si' : ''}"></i>`).join('');
+  $('paso-num').textContent = `Pregunta ${estado.paso + 1} de ${CRITERIOS.length}`;
+  $('crit-ico').textContent = c.ico;
+  $('crit-titulo').textContent = c.titulo;
+  $('crit-porque').textContent = c.porque;
+  $('crit-corte').classList.toggle('oculto', !c.corte);
+  $('crit-leyenda').innerHTML = c.n.map((t, i) => `<b>${i + 1}</b><span>${t}</span>`).join('');
+  const caja = $('crit-apps');
+  caja.innerHTML = '';
+  elegidas().forEach((a) => {
+    const div = document.createElement('div');
+    div.className = 'caja';
+    div.innerHTML = '<p class="nota-app"></p><div class="tres"></div>';
+    div.querySelector('.nota-app').textContent = a.nombre;
+    const tres = div.querySelector('.tres');
+    [1, 2, 3].forEach((v) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = punto(a.id, c.id) === v ? 'si' : '';
+      b.innerHTML = `${v}<small></small>`;
+      b.querySelector('small').textContent = c.n[v - 1];
+      b.setAttribute('aria-pressed', punto(a.id, c.id) === v);
+      b.onclick = () => {
+        estado.puntos[a.id] = estado.puntos[a.id] || {};
+        // Tocar el mismo número otra vez lo borra
+        if (estado.puntos[a.id][c.id] === v) delete estado.puntos[a.id][c.id];
+        else estado.puntos[a.id][c.id] = v;
+        guardar(); pintarPaso();
+      };
+      tres.appendChild(b);
+    });
+    caja.appendChild(div);
+  });
+  const faltan = elegidas().filter((a) => !punto(a.id, c.id)).length;
+  $('btn-atras').classList.remove('oculto');
+  $('btn-sig').textContent = estado.paso === CRITERIOS.length - 1 ? 'Ver resultado →' : 'Siguiente →';
+  $('btn-sig').disabled = faltan > 0;
+  if (faltan) $('falta').textContent = faltan === 1 ? 'Falta puntuar 1 app' : `Faltan ${faltan} apps por puntuar`;
+}
+
+function calcular() {
+  return elegidas().map((a) => {
+    const p = estado.puntos[a.id] || {};
+    const total = CRITERIOS.reduce((s, c) => s + (p[c.id] || 0), 0);
+    const cortes = CRITERIOS.filter((c) => c.corte && p[c.id] === 1).map((c) => c.titulo);
+    return { app: a, p, total, cortes };
+  }).sort((x, y) => (x.cortes.length - y.cortes.length) || (y.total - x.total));
+}
+
+function pintarResultado() {
+  const max = CRITERIOS.length * 3;
+  $('res-titulo').textContent = 'Resultado de ' + estado.nombre;
+  $('notas').value = estado.notas || '';
+  $('res-hecho').textContent = '';
+  const caja = $('res-lista');
+  caja.innerHTML = '';
+  let pos = 0;
+  calcular().forEach((r) => {
+    const div = document.createElement('div');
+    div.className = 'caja puesto' + (r.cortes.length ? ' fuera' : '');
+    div.innerHTML = `<div class="pos">${r.cortes.length ? '✕' : ++pos}</div>
+      <div class="info"><b></b><div class="barra"><i style="width:${Math.round(r.total / max * 100)}%"></i></div><div class="desglose"></div></div>
+      <div class="total">${r.total}<small> /${max}</small></div>`;
+    div.querySelector('b').textContent = r.app.nombre;
+    const d = div.querySelector('.desglose');
+    if (r.cortes.length) {
+      const m = document.createElement('div'); m.className = 'motivo';
+      m.textContent = 'Fuera: un 1 en ' + r.cortes.map((t) => '«' + t + '»').join(' y ');
+      d.appendChild(m);
+    }
+    d.appendChild(document.createTextNode(CRITERIOS.map((c) => c.ico + ' ' + (r.p[c.id] || '–')).join('  ')));
+    caja.appendChild(div);
+  });
+}
+$('notas').oninput = (e) => { estado.notas = e.target.value; guardar(); };
+
+function textoHoja() {
+  const max = CRITERIOS.length * 3;
+  const fecha = new Date().toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const lineas = [`ELEGIR APP · hoja de ${estado.nombre} · ${fecha}`, 'Regla: un 1 en «¿Hay algo gratis?» o «¿Lo podemos hacer?» = fuera', ''];
+  let pos = 0;
+  calcular().forEach((r) => {
+    lineas.push(`${r.cortes.length ? 'FUERA' : (++pos) + '.'} ${r.app.nombre} — ${r.total} de ${max}`);
+    lineas.push('   ' + CRITERIOS.map((c) => c.titulo.replace(/^¿|\?$/g, '') + ': ' + (r.p[c.id] || '–')).join(' · '));
+    if (r.cortes.length) lineas.push('   (fuera por un 1 en ' + r.cortes.join(' y ') + ')');
+    lineas.push('');
+  });
+  if ((estado.notas || '').trim()) lineas.push('Notas: ' + estado.notas.trim(), '');
+  lineas.push('--- datos para Claude ---');
+  lineas.push(JSON.stringify({ nombre: estado.nombre, apps: elegidas().map((a) => ({ id: a.id, nombre: a.nombre })), puntos: estado.puntos, notas: estado.notas || '' }));
+  return lineas.join('\n');
+}
+
+$('btn-descargar').onclick = () => {
+  const blob = new Blob([textoHoja()], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `Elegir app - hoja de ${estado.nombre}.txt`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  $('res-hecho').textContent = '✅ Descargada. Búscala en Descargas y mándasela a Emmanuel.';
+};
+$('btn-compartir').onclick = async () => {
+  const texto = textoHoja();
+  if (navigator.share) {
+    try { await navigator.share({ title: 'Elegir app · ' + estado.nombre, text: texto }); return; } catch (e) { if (e.name === 'AbortError') return; }
+  }
+  try { await navigator.clipboard.writeText(texto); $('res-hecho').textContent = '✅ Copiado. Pégalo en WhatsApp.'; }
+  catch (e) { location.href = 'https://wa.me/?text=' + encodeURIComponent(texto); }
+};
+$('btn-cambiar').onclick = () => ir('puntuar', 0);
+$('btn-reiniciar').onclick = () => {
+  const copia = JSON.parse(JSON.stringify(estado));
+  estado = { nombre: '', apps: APPS_INICIALES.map((a) => ({ ...a, si: true })), puntos: {}, notas: '', pagina: 'inicio', paso: 0 };
+  guardar(); pintar();
+  avisar('Has empezado de nuevo', () => { estado = copia; guardar(); pintar(); });
+};
+
+$('btn-atras').onclick = () => {
+  if (estado.pagina === 'apps') ir('inicio');
+  else if (estado.pagina === 'puntuar') estado.paso > 0 ? ir('puntuar', estado.paso - 1) : ir('apps');
+};
+$('btn-sig').onclick = () => {
+  if (estado.pagina === 'inicio') ir('apps');
+  else if (estado.pagina === 'apps') ir('puntuar', 0);
+  else if (estado.pagina === 'puntuar') estado.paso < CRITERIOS.length - 1 ? ir('puntuar', estado.paso + 1) : ir('resultado');
+};
+
+pintar();
+</script>
+</body>
+</html>

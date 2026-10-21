@@ -356,13 +356,17 @@ const MENU = [['🔨 Nuevo trabajo', '🧾 Ticket'], ['⏱️ Horas', '🚗 Viaj
 const OFICIOS = ['Fontanería', 'Electricidad', 'Pintura', 'Albañilería', 'Carpintería', 'De todo un poco'];
 
 // ---------- Puerta de entrada (Telegram llama aquí con cada mensaje) ----------
+// Se contesta con HtmlService y no con ContentService: ContentService responde con una redirección (302)
+// y Telegram la toma por un fallo, reintenta ese mensaje sin parar y los siguientes se quedan en cola.
+function recibido_(t) { return HtmlService.createHtmlOutput(t); }
+
 function doPost(e) {
   const secreto = PropertiesService.getScriptProperties().getProperty('WEBHOOK_SECRETO');
-  if (!secreto || !e || !e.parameter || e.parameter.s !== secreto) return ContentService.createTextOutput('no');
+  if (!secreto || !e || !e.parameter || e.parameter.s !== secreto) return recibido_('no');
   let update = null;
-  try { update = JSON.parse(e.postData.contents); } catch (err) { return ContentService.createTextOutput('ok'); }
+  try { update = JSON.parse(e.postData.contents); } catch (err) { return recibido_('ok'); }
   procesarUpdate_(update);
-  return ContentService.createTextOutput('ok');
+  return recibido_('ok');
 }
 
 function doGet() {
