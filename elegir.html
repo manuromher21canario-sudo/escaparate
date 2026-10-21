@@ -45,6 +45,8 @@
   .app label { flex: 1; cursor: pointer; }
   .app b { display: block; font-size: 17px; }
   .app span { color: var(--gris); font-size: 15px; }
+  .demos { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .demos a { color: var(--ambar); font-weight: 700; font-size: 15px; text-decoration: none; padding: 6px 10px; border-radius: 8px; background: rgba(224,154,43,.12); }
   .app .quitar { color: var(--gris); font-size: 14px; padding: 4px 8px; border-radius: 8px; background: rgba(255,255,255,.06); }
   .anadir { display: flex; gap: 8px; margin-top: 10px; }
   .anadir input { flex: 1; }
@@ -97,6 +99,12 @@
     <h1>¿En qué app nos centramos?</h1>
     <p class="sub">Cada uno rellena esto en su móvil, <b>sin mirar lo del otro</b>. Al final descargas tu hoja y se la mandas a Emmanuel.</p>
     <div class="caja">
+      <p class="etiqueta">¿Qué es esto?</p>
+      <p style="margin:0 0 8px">Emmanuel está montando una empresa de apps para negocios y familias. Ya tiene varias ideas con prototipos (versiones de prueba que se pueden tocar).</p>
+      <p style="margin:0 0 8px">Ahora queremos <b>elegir entre los dos UNA sola app</b> y centrarnos en ella al 100 %, en vez de ir un poco con todas.</p>
+      <p style="margin:0">Cuando esté elegida, Aray tendrá <b>su propia parte</b> del trabajo (no hace falta programar: hablar con la gente que la usaría, probarla y decidir cosas).</p>
+    </div>
+    <div class="caja">
       <p class="etiqueta">¿Quién eres?</p>
       <div class="nombres" id="nombres">
         <button type="button" data-n="Emmanuel">Emmanuel</button>
@@ -113,7 +121,7 @@
   <!-- 2. Qué apps -->
   <section id="p-apps" class="oculto">
     <h2>¿Qué apps comparamos?</h2>
-    <p class="sub">Desmarca las que no quieras puntuar. Puedes añadir otra idea.</p>
+    <p class="sub">Antes de puntuar, <b>mira cómo es cada una</b> en su enlace. Desmarca las que no quieras puntuar o añade otra idea.</p>
     <div id="lista-apps"></div>
     <div class="anadir">
       <input type="text" id="nueva-app" placeholder="Otra idea…" maxlength="40">
@@ -168,12 +176,21 @@
 
 <script>
 const APPS_INICIALES = [
-  { id: 'manitu', nombre: '🔧 Manitu', desc: 'Para manitas como tu padre: foto del ticket → sabe cuánto cobrar y le da al cliente un papel claro.' },
-  { id: 'abuela', nombre: '🧓 Buenos Días, Abuela', desc: 'Un mensaje o llamada diaria a la abuela con voces de los nietos; los hermanos se turnan.' },
-  { id: 'baul', nombre: '📦 Mi Baúl de los Recuerdos', desc: 'Las fotos antiguas de la familia en digital, con la voz del abuelo contando cada una.' },
-  { id: 'touless', nombre: '✂️ Touless (app de citas)', desc: 'Reservas para peluquerías sin comisiones, que acaban con los plantones.' },
-  { id: 'nexus', nombre: '💶 Plantillas Nexus', desc: 'Caja, Inventario y Citas con Google para negocios pequeños. Ya están hechas.' }
+  { id: 'manitu', nombre: '🔧 Manitu', desc: 'Para manitas (gente que hace arreglos en casas): mandan la foto del ticket y la app les dice cuánto cobrar y le da al cliente un papel claro.',
+    demos: [['Ver la app', 'manitu.html'], ['Probar el bot', 'bot-manitu.html']] },
+  { id: 'abuela', nombre: '🧓 Buenos Días, Abuela', desc: 'Un mensaje o llamada diaria a la abuela con voces de los nietos; los hermanos se turnan.',
+    demos: [['Ver la app', 'abuela.html']] },
+  { id: 'baul', nombre: '📦 Mi Baúl de los Recuerdos', desc: 'Las fotos antiguas de la familia en digital, con la voz del abuelo contando cada una, y un vídeo automático.',
+    demos: [['Ver el vídeo', 'mi-baul.mp4']] },
+  { id: 'touless', nombre: '✂️ Touless (app de citas)', desc: 'Reservas para peluquerías sin comisiones, que acaban con los plantones.',
+    demos: [['Ver la app', 'touless.html']] },
+  { id: 'nexus', nombre: '💶 Plantillas Nexus', desc: 'Caja, Inventario y Citas con Google para negocios pequeños (peluquerías, tiendas…). Ya están hechas y se pueden vender.',
+    demos: [['Ver el inventario', 'piezas.html']] }
 ];
+// Con ?apps=manitu,baul solo salen marcadas esas (para que los dos comparen lo mismo)
+const SOLO = new URLSearchParams(location.search).get('apps');
+const marcadaAlEmpezar = (a) => !SOLO || SOLO.split(',').includes(a.id);
+const appsIniciales = () => APPS_INICIALES.map((a) => ({ ...a, si: marcadaAlEmpezar(a) }));
 
 const CRITERIOS = [
   { id: 'duele', ico: '🔥', titulo: '¿El problema duele de verdad?', porque: 'No vale «estaría guay». Tiene que haber gente que ya lo sufre (encuestas, quejas que hayáis oído o leído).',
@@ -195,7 +212,7 @@ const CRITERIOS = [
 ];
 
 const CLAVE = 'elegir-app-v1';
-let estado = cargar() || { nombre: '', apps: APPS_INICIALES.map((a) => ({ ...a, si: true })), puntos: {}, notas: '', pagina: 'inicio', paso: 0 };
+let estado = cargar() || { nombre: '', apps: appsIniciales(), puntos: {}, notas: '', pagina: 'inicio', paso: 0 };
 
 function cargar() { try { const s = localStorage.getItem(CLAVE); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
 function guardar() { try { localStorage.setItem(CLAVE, JSON.stringify(estado)); } catch (e) {} }
@@ -254,6 +271,17 @@ function pintarApps() {
     fila.querySelector('b').textContent = a.nombre;
     fila.querySelector('span').textContent = a.desc || 'Idea añadida por ti';
     fila.querySelector('input').onchange = (e) => { a.si = e.target.checked; guardar(); pintarApps(); };
+    const original = APPS_INICIALES.find((x) => x.id === a.id);
+    if (original && original.demos) {
+      const enlaces = document.createElement('div');
+      enlaces.className = 'demos';
+      original.demos.forEach(([texto, archivo]) => {
+        const l = document.createElement('a');
+        l.href = archivo; l.target = '_blank'; l.rel = 'noopener'; l.textContent = texto + ' ↗';
+        enlaces.appendChild(l);
+      });
+      fila.querySelector('label').appendChild(enlaces);
+    }
     if (a.propia) {
       const q = document.createElement('button');
       q.type = 'button'; q.className = 'quitar'; q.textContent = 'Quitar';
@@ -396,7 +424,7 @@ $('btn-compartir').onclick = async () => {
 $('btn-cambiar').onclick = () => ir('puntuar', 0);
 $('btn-reiniciar').onclick = () => {
   const copia = JSON.parse(JSON.stringify(estado));
-  estado = { nombre: '', apps: APPS_INICIALES.map((a) => ({ ...a, si: true })), puntos: {}, notas: '', pagina: 'inicio', paso: 0 };
+  estado = { nombre: '', apps: appsIniciales(), puntos: {}, notas: '', pagina: 'inicio', paso: 0 };
   guardar(); pintar();
   avisar('Has empezado de nuevo', () => { estado = copia; guardar(); pintar(); });
 };
